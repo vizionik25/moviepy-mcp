@@ -61,6 +61,45 @@ class CompositeRequest(BaseModel):
     size: Optional[Tuple[int, int]] = Field(None, description="Size of the final composition")
     method: str = Field("stack", description="Composition method: 'stack' or 'grid'") # simplified
 
+class MirrorRequest(ClipRequest):
+    axis: str = Field("x", description="Axis to mirror: 'x' or 'y'")
+
+class RotateRequest(ClipRequest):
+    angle: float = Field(..., description="Angle to rotate in degrees")
+
+class CropRequest(ClipRequest):
+    x1: Optional[int] = Field(None, description="Top left x coordinate")
+    y1: Optional[int] = Field(None, description="Top left y coordinate")
+    x2: Optional[int] = Field(None, description="Bottom right x coordinate")
+    y2: Optional[int] = Field(None, description="Bottom right y coordinate")
+    width: Optional[int] = Field(None, description="Width of the crop")
+    height: Optional[int] = Field(None, description="Height of the crop")
+
+class MarginRequest(ClipRequest):
+    margin: int = Field(..., description="Margin size")
+    color: Tuple[int, int, int] = Field((0, 0, 0), description="Color of the margin (R, G, B)")
+    opacity: float = Field(1.0, description="Opacity of the margin")
+
+class FadeRequest(ClipRequest):
+    fade_type: str = Field(..., description="Fade type: 'in' or 'out'")
+    duration: float = Field(..., description="Duration of the fade in seconds")
+
+class LoopRequest(ClipRequest):
+    n: Optional[int] = Field(None, description="Number of times to loop")
+    duration: Optional[float] = Field(None, description="Duration to loop for")
+
+class TimeEffectRequest(ClipRequest):
+    effect_type: str = Field(..., description="Time effect type: 'reverse', 'symmetrize', 'freeze'")
+    duration: Optional[float] = Field(None, description="Duration for 'freeze'")
+
+class AudioFadeRequest(ClipRequest):
+    fade_type: str = Field(..., description="Fade type: 'in' or 'out'")
+    duration: float = Field(..., description="Duration of the fade in seconds")
+
+class AudioLoopRequest(ClipRequest):
+    n: Optional[int] = Field(None, description="Number of times to loop")
+    duration: Optional[float] = Field(None, description="Duration to loop for")
+
 class ResponseModel(BaseModel):
     status: str
     output_path: str

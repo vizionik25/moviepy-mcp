@@ -1,8 +1,14 @@
 from fastapi import APIRouter, HTTPException
-from ..schemas import CutRequest, ConcatenateRequest, ResizeRequest, SpeedRequest, ColorEffectRequest, ResponseModel
+from ..schemas import (
+    CutRequest, ConcatenateRequest, ResizeRequest, SpeedRequest, ColorEffectRequest,
+    MirrorRequest, RotateRequest, CropRequest, MarginRequest, FadeRequest, LoopRequest, TimeEffectRequest,
+    ResponseModel
+)
 from ..video_utils import (
     process_cut_video, process_concatenate_videos, process_resize_video,
-    process_speed_video, process_color_effect
+    process_speed_video, process_color_effect,
+    process_mirror_video, process_rotate_video, process_crop_video,
+    process_margin_video, process_fade_video, process_loop_video, process_time_effect_video
 )
 import os
 
@@ -65,6 +71,96 @@ async def color_effect_video(request: ColorEffectRequest):
     try:
         output_path = process_color_effect(
             request.video_path, request.effect_type, request.factor, request.output_path
+        )
+        return ResponseModel(status="success", output_path=output_path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/mirror", response_model=ResponseModel)
+async def mirror_video(request: MirrorRequest):
+    try:
+        output_path = process_mirror_video(
+            request.video_path, request.axis, request.output_path
+        )
+        return ResponseModel(status="success", output_path=output_path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/rotate", response_model=ResponseModel)
+async def rotate_video(request: RotateRequest):
+    try:
+        output_path = process_rotate_video(
+            request.video_path, request.angle, request.output_path
+        )
+        return ResponseModel(status="success", output_path=output_path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/crop", response_model=ResponseModel)
+async def crop_video(request: CropRequest):
+    try:
+        output_path = process_crop_video(
+            request.video_path, request.x1, request.y1, request.x2, request.y2, request.width, request.height, request.output_path
+        )
+        return ResponseModel(status="success", output_path=output_path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/margin", response_model=ResponseModel)
+async def margin_video(request: MarginRequest):
+    try:
+        output_path = process_margin_video(
+            request.video_path, request.margin, request.color, request.opacity, request.output_path
+        )
+        return ResponseModel(status="success", output_path=output_path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/fade", response_model=ResponseModel)
+async def fade_video(request: FadeRequest):
+    try:
+        output_path = process_fade_video(
+            request.video_path, request.fade_type, request.duration, request.output_path
+        )
+        return ResponseModel(status="success", output_path=output_path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/loop", response_model=ResponseModel)
+async def loop_video(request: LoopRequest):
+    try:
+        output_path = process_loop_video(
+            request.video_path, request.n, request.duration, request.output_path
+        )
+        return ResponseModel(status="success", output_path=output_path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/time-effect", response_model=ResponseModel)
+async def time_effect_video(request: TimeEffectRequest):
+    try:
+        output_path = process_time_effect_video(
+            request.video_path, request.effect_type, request.duration, request.output_path
         )
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
