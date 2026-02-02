@@ -1,5 +1,5 @@
 from fastmcp import FastMCP
-from .video_utils import (
+from video_utils import (
     generate_simple_video, process_cut_video, process_concatenate_videos,
     process_resize_video, process_speed_video, process_volume_video,
     process_extract_audio, process_composite_videos, process_text_overlay,
