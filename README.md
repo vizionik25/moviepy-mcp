@@ -103,11 +103,11 @@ You can also run the MCP server in different transport modes using environment v
 
 *   **HTTP**:
     ```bash
-MCP_TRANSPORT=http PORT=8001 uv run python -m src.video_gen_service.mcp_server
+    MCP_TRANSPORT=http PORT=8001 uv run python -m src.video_gen_service.mcp_server
     ```
 *   **Server-Sent Events (SSE)**:
     ```bash
-MCP_TRANSPORT=sse PORT=8001 uv run python -m src.video_gen_service.mcp_server
+    MCP_TRANSPORT=sse PORT=8001 uv run python -m src.video_gen_service.mcp_server
     ```
 
 ## 🛠️ API Documentation
@@ -186,13 +186,13 @@ This project includes a `Dockerfile` and `docker-compose.yml` for easy container
 
 1.  **Build the Docker image:**
     ```bash
-docker-compose build
+    docker-compose build
     ```
 
 2.  **Run the service:**
     This will start the FastAPI server on port 8000.
     ```bash
-docker-compose up
+    docker-compose up
     ```
 
 ## 📜 License
