@@ -2,8 +2,18 @@ services:
   video-gen-mcp:
     build: .
     ports:
-      - "8000:8000"
+      - "80:80"
+      - "443:443"
+      # - "8000:8000" # Direct access disabled for production
     environment:
       - MCP_TRANSPORT=http
       - HOST=0.0.0.0
       - PORT=8000
+      - DOMAIN_NAME=localhost
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
