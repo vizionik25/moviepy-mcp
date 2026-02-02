@@ -1,9 +1,12 @@
 from fastmcp import FastMCP
-from video_utils import (
+from video_gen_service.video_utils import (
     generate_simple_video, process_cut_video, process_concatenate_videos,
     process_resize_video, process_speed_video, process_volume_video,
     process_extract_audio, process_composite_videos, process_text_overlay,
-    process_color_effect, process_image_overlay
+    process_color_effect, process_image_overlay,
+    process_mirror_video, process_rotate_video, process_crop_video,
+    process_margin_video, process_fade_video, process_loop_video,
+    process_time_effect_video, process_audio_fade_video, process_audio_loop_video
 )
 import os
 from typing import List
@@ -17,11 +20,11 @@ def create_video(text: str, duration: float = 3.0) -> str:
     Generates a simple video with the given text on a background.
     Returns the path to the generated video file.
     """
-    safe_text = "".join(c for c in text if c.isalnum() or c in (' ', '_', '-')).strip()
-    safe_text = safe_text.replace(' ', '_')[:50]
-    output_file = f"video_{safe_text}.mp4"
-
     try:
+        safe_text = "".join(c for c in text if c.isalnum() or c in (' ', '_', '-')).strip()
+        safe_text = safe_text.replace(' ', '_')[:50]
+        output_file = f"video_{safe_text}.mp4"
+
         result = generate_simple_video(text, duration, output_file)
         return f"Video generated successfully at: {os.path.abspath(result)}"
     except Exception as e:
@@ -120,6 +123,87 @@ def color_effect(video_path: str, effect_type: str, factor: float = 1.0, output_
         return f"Color effect applied successfully: {os.path.abspath(result)}"
     except Exception as e:
         return f"Error applying color effect: {str(e)}"
+
+@mcp.tool()
+def mirror_video(video_path: str, axis: str = "x", output_path: str = None) -> str:
+    """Mirror video along axis 'x' or 'y'."""
+    try:
+        result = process_mirror_video(video_path, axis, output_path)
+        return f"Video mirrored successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error mirroring video: {str(e)}"
+
+@mcp.tool()
+def rotate_video(video_path: str, angle: float, output_path: str = None) -> str:
+    """Rotate video by angle."""
+    try:
+        result = process_rotate_video(video_path, angle, output_path)
+        return f"Video rotated successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error rotating video: {str(e)}"
+
+@mcp.tool()
+def crop_video(video_path: str, x1: int = None, y1: int = None, x2: int = None, y2: int = None, width: int = None, height: int = None, output_path: str = None) -> str:
+    """Crop video."""
+    try:
+        result = process_crop_video(video_path, x1, y1, x2, y2, width, height, output_path)
+        return f"Video cropped successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error cropping video: {str(e)}"
+
+@mcp.tool()
+def margin_video(video_path: str, margin: int, color: tuple[int, int, int] = (0, 0, 0), opacity: float = 1.0, output_path: str = None) -> str:
+    """Add margin to video."""
+    try:
+        result = process_margin_video(video_path, margin, color, opacity, output_path)
+        return f"Margin added successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error adding margin: {str(e)}"
+
+@mcp.tool()
+def fade_video(video_path: str, fade_type: str, duration: float, output_path: str = None) -> str:
+    """Fade video 'in' or 'out'."""
+    try:
+        result = process_fade_video(video_path, fade_type, duration, output_path)
+        return f"Video faded successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error fading video: {str(e)}"
+
+@mcp.tool()
+def loop_video(video_path: str, n: int = None, duration: float = None, output_path: str = None) -> str:
+    """Loop video."""
+    try:
+        result = process_loop_video(video_path, n, duration, output_path)
+        return f"Video looped successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error looping video: {str(e)}"
+
+@mcp.tool()
+def time_effect_video(video_path: str, effect_type: str, duration: float = None, output_path: str = None) -> str:
+    """Apply time effect: 'reverse', 'symmetrize', 'freeze'."""
+    try:
+        result = process_time_effect_video(video_path, effect_type, duration, output_path)
+        return f"Time effect applied successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error applying time effect: {str(e)}"
+
+@mcp.tool()
+def audio_fade(video_path: str, fade_type: str, duration: float, output_path: str = None) -> str:
+    """Fade audio 'in' or 'out'."""
+    try:
+        result = process_audio_fade_video(video_path, fade_type, duration, output_path)
+        return f"Audio faded successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error fading audio: {str(e)}"
+
+@mcp.tool()
+def audio_loop(video_path: str, n: int = None, duration: float = None, output_path: str = None) -> str:
+    """Loop audio."""
+    try:
+        result = process_audio_loop_video(video_path, n, duration, output_path)
+        return f"Audio looped successfully: {os.path.abspath(result)}"
+    except Exception as e:
+        return f"Error looping audio: {str(e)}"
 
 if __name__ == "__main__":
     mcp.run()

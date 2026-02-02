@@ -2,7 +2,7 @@ import os
 import tempfile
 import uuid
 from typing import List, Optional, Tuple, Union
-from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip, concatenate_videoclips, clips_array, ImageClip, vfx
+from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip, concatenate_videoclips, clips_array, ImageClip, vfx, afx
 from PIL import Image, ImageDraw, ImageFont
 
 def get_unique_output_path(original_path: str, suffix: str, ext: str = None) -> str:
@@ -310,5 +310,148 @@ def process_color_effect(video_path: str, effect_type: str, factor: float = 1.0,
         else:
             raise ValueError(f"Unknown effect type: {effect_type}")
 
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_mirror_video(video_path: str, axis: str = "x", output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, f"mirror_{axis}")
+
+    with VideoFileClip(video_path) as video:
+        if axis == "x":
+            new_clip = video.with_effects([vfx.MirrorX()])
+        elif axis == "y":
+            new_clip = video.with_effects([vfx.MirrorY()])
+        else:
+            raise ValueError("Axis must be 'x' or 'y'")
+
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_rotate_video(video_path: str, angle: float, output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, "rotate")
+
+    with VideoFileClip(video_path) as video:
+        new_clip = video.rotated(angle)
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_crop_video(video_path: str, x1: int = None, y1: int = None, x2: int = None, y2: int = None, width: int = None, height: int = None, output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, "crop")
+
+    with VideoFileClip(video_path) as video:
+        new_clip = video.cropped(x1=x1, y1=y1, x2=x2, y2=y2, width=width, height=height)
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_margin_video(video_path: str, margin: int, color: tuple[int, int, int] = (0, 0, 0), opacity: float = 1.0, output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, "margin")
+
+    with VideoFileClip(video_path) as video:
+        new_clip = video.with_effects([vfx.Margin(margin_size=margin, color=color, opacity=opacity)])
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_fade_video(video_path: str, fade_type: str, duration: float, output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, f"fade_{fade_type}")
+
+    with VideoFileClip(video_path) as video:
+        if fade_type == "in":
+            new_clip = video.with_effects([vfx.FadeIn(duration)])
+        elif fade_type == "out":
+            new_clip = video.with_effects([vfx.FadeOut(duration)])
+        else:
+            raise ValueError("Fade type must be 'in' or 'out'")
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_loop_video(video_path: str, n: int = None, duration: float = None, output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, "loop")
+
+    with VideoFileClip(video_path) as video:
+        new_clip = video.with_effects([vfx.Loop(n=n, duration=duration)])
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_time_effect_video(video_path: str, effect_type: str, duration: float = None, output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, f"time_{effect_type}")
+
+    with VideoFileClip(video_path) as video:
+        if effect_type == "reverse":
+            new_clip = video.with_effects([vfx.TimeMirror()])
+        elif effect_type == "symmetrize":
+            new_clip = video.with_effects([vfx.TimeSymmetrize()])
+        elif effect_type == "freeze":
+            if duration is None:
+                raise ValueError("Duration required for freeze effect")
+            # Freeze at the start
+            new_clip = video.with_effects([vfx.Freeze(t=0, freeze_duration=duration)])
+        else:
+            raise ValueError(f"Unknown time effect: {effect_type}")
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_audio_fade_video(video_path: str, fade_type: str, duration: float, output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, f"audio_fade_{fade_type}")
+
+    with VideoFileClip(video_path) as video:
+        if not video.audio:
+             raise ValueError("Video has no audio")
+
+        if fade_type == "in":
+            new_audio = video.audio.with_effects([afx.AudioFadeIn(duration)])
+        elif fade_type == "out":
+            new_audio = video.audio.with_effects([afx.AudioFadeOut(duration)])
+        else:
+            raise ValueError("Fade type must be 'in' or 'out'")
+
+        new_clip = video.with_audio(new_audio)
+        write_video(new_clip, output_path)
+    return output_path
+
+def process_audio_loop_video(video_path: str, n: int = None, duration: float = None, output_path: str = None) -> str:
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, "audio_loop")
+
+    with VideoFileClip(video_path) as video:
+        if not video.audio:
+             raise ValueError("Video has no audio")
+
+        new_audio = video.audio.with_effects([afx.AudioLoop(n_loops=n, duration=duration)])
+        new_clip = video.with_audio(new_audio)
         write_video(new_clip, output_path)
     return output_path
