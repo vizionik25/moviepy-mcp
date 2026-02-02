@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "subtle-salmon-catshark": {
+      "url": "https://subtle-salmon-catshark.fastmcp.app/mcp",
+      "type": "http",
+      "headers": {
+        "Authorization": "Bearer fmcp_i1gV9DMAPAYZCJwZgSNDii71vrVJnGRm6EYN-cALuUE"
+      }
+    },
+    "moviepy-mcp": {
+      "url": "http://localhost:8000/mcp",
+      "type": "http"
+    }
+  }
+}

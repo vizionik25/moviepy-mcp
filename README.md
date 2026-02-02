@@ -1,95 +1,200 @@
-# Video Gen Service
+# MoviePy MCP Video Generation Service
 
-A FastAPI application using FastMCP and MoviePy to generate videos.
+[![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Requirements
+A powerful video generation and editing service powered by FastAPI, MoviePy, and FastMCP.
 
-- Python 3.12+
-- `uv` package manager
+## 🎬 Description
 
-## Installation
+This project provides a comprehensive service for programmatically creating and manipulating video and audio content. It exposes a rich set of tools through both a RESTful API (using FastAPI) and a Model-Context-Protocol (MCP) server, making it easy to integrate video editing capabilities into any application or AI agent-based workflow.
+
+Whether you need to generate simple clips, perform complex edits, or composite multiple videos, this service offers a robust and easy-to-use solution.
+
+### ✨ Key Features
+
+*   **Dual-Interface**: Interact via a standard REST API or a flexible MCP server for AI agents.
+*   **Rich Editing Suite**: A wide range of tools for video, audio, and compositing tasks.
+*   **Extensible**: Built with a modular router-based architecture, making it easy to add new features.
+*   **Containerized**: Comes with Docker support for easy deployment and scaling.
+*   **Modern Tooling**: Uses `uv` for fast dependency management and `pytest` for robust testing.
+
+## 📖 Table of Contents
+
+*   [Installation](#-installation)
+*   [🚀 Quick Start](#-quick-start)
+    *   [Running the API Server](#running-the-api-server)
+    *   [Running the MCP Server](#running-the-mcp-server)
+*   [🛠️ API Documentation](#️-api-documentation)
+    *   [Video Generation](#video-generation)
+    *   [Video Editing](#video-editing)
+    *   [Audio Processing](#audio-processing)
+    *   [Compositing](#compositing)
+*   [🤖 MCP Tools](#-mcp-tools)
+*   [🧪 Development & Testing](#-development--testing)
+    *   [Setup](#setup)
+    *   [Running Tests](#running-tests)
+*   [🐳 Docker Deployment](#-docker-deployment)
+*   [📜 License](#-license)
+
+## 📦 Installation
+
+### Prerequisites
+
+*   Python 3.12+
+*   [uv](https://github.com/astral-sh/uv) (a fast Python package installer)
+*   FFmpeg (required by MoviePy for video processing)
 
 ```bash
-uv sync
+# On Debian/Ubuntu
+sudo apt-get update && sudo apt-get install -y ffmpeg
+
+# On macOS (using Homebrew)
+brew install ffmpeg
 ```
 
-## Running the Server
+### Setup
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/moviepy-mcp.git
+    cd moviepy-mcp
+    ```
+
+2.  **Install dependencies using `uv`:**
+    This command creates a virtual environment and installs all required packages from `pyproject.toml`.
+    ```bash
+    uv sync
+    ```
+
+## 🚀 Quick Start
+
+You can run the service as a REST API server or as an MCP server.
+
+### Running the API Server
+
+The API server provides standard HTTP endpoints for all video and audio operations.
 
 ```bash
-uv run uvicorn video_gen_service.main:app --reload
+uv run uvicorn src.video_gen_service.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Running Tests
+The API will be accessible at `http://localhost:8000`. You can explore the interactive API documentation (powered by Swagger UI) at `http://localhost:8000/docs`.
 
+**Example: Generate a video using `curl`**
+```bash
+curl -X POST "http://localhost:8000/video/generate" \
+-H "Content-Type: application/json" \
+-d '{"text": "Hello, World!", "duration": 5}'
+```
+
+### Running the MCP Server
+
+The MCP server is designed for interaction with AI agents that can consume and use the provided tools.
+
+```bash
+uv run python -m src.video_gen_service.mcp_server
+```
+
+The server will start and listen for MCP connections over standard I/O by default.
+
+**MCP Transport Modes:**
+
+You can also run the MCP server in different transport modes using environment variables:
+
+*   **HTTP**:
+    ```bash
+MCP_TRANSPORT=http PORT=8001 uv run python -m src.video_gen_service.mcp_server
+    ```
+*   **Server-Sent Events (SSE)**:
+    ```bash
+MCP_TRANSPORT=sse PORT=8001 uv run python -m src.video_gen_service.mcp_server
+    ```
+
+## 🛠️ API Documentation
+
+The following is a summary of the available API endpoints. For detailed request/response models, please refer to the auto-generated docs at `http://localhost:8000/docs`.
+
+### Video Generation
+
+*   **`POST /video/generate`**: Creates a simple video with text on a background.
+
+### Video Editing
+
+*   **`POST /video-edits/cut`**: Trims a video.
+*   **`POST /video-edits/concatenate`**: Joins multiple videos.
+*   **`POST /video-edits/resize`**: Resizes a video.
+*   **`POST /video-edits/speed`**: Changes the playback speed.
+*   **`POST /video-edits/color-effect`**: Applies a color filter.
+*   **`POST /video-edits/mirror`**: Mirrors the video horizontally or vertically.
+*   **`POST /video-edits/rotate`**: Rotates the video.
+*   **`POST /video-edits/crop`**: Crops the video.
+*   **`POST /video-edits/margin`**: Adds a margin around the video.
+*   **`POST /video-edits/fade`**: Applies fade-in or fade-out.
+*   **`POST /video-edits/loop`**: Loops the video content.
+*   **`POST /video-edits/time-effect`**: Applies time-based effects like reverse or freeze.
+
+### Audio Processing
+
+*   **`POST /audio/volume`**: Adjusts the volume of a video's audio.
+*   **`POST /audio/extract`**: Extracts the audio track from a video.
+*   **`POST /audio/fade`**: Fades the audio in or out.
+*   **`POST /audio/loop`**: Loops the audio track.
+
+### Compositing
+
+*   **`POST /compositing/composite`**: Stacks or grids multiple videos together.
+*   **`POST /compositing/text-overlay`**: Adds a text overlay to a video.
+*   **`POST /compositing/image-overlay`**: Adds an image overlay to a video.
+
+## 🤖 MCP Tools
+
+The MCP server exposes a wide range of tools for agentic workflows. Each tool corresponds to one of the API functionalities.
+
+**Example MCP Tools:**
+
+*   `create_video(text: str, duration: float)`
+*   `cut_video(video_path: str, start_time: float, end_time: float)`
+*   `concatenate_videos(video_paths: List[str])`
+*   `resize_video(video_path: str, scale: float)`
+*   `text_overlay(video_path: str, text: str)`
+*   `adjust_volume(video_path: str, factor: float)`
+*   ...and many more!
+
+Refer to `src/video_gen_service/mcp_server.py` for a complete list of available tools and their signatures.
+
+## 🧪 Development & Testing
+
+### Setup
+
+Follow the [Installation](#-installation) steps to set up the development environment. The `dev` dependency group in `pyproject.toml` includes `pytest` and `httpx` for testing.
+
+### Running Tests
+
+To run the full test suite:
 ```bash
 uv run pytest
 ```
 
-To run tests with coverage:
-
+To run tests with code coverage analysis:
 ```bash
 uv run pytest --cov=src
 ```
 
-## MCP Server
+## 🐳 Docker Deployment
 
-To run the MCP server:
+This project includes a `Dockerfile` and `docker-compose.yml` for easy containerization.
 
-```bash
-uv run python -m video_gen_service.mcp_server
-```
+1.  **Build the Docker image:**
+    ```bash
+docker-compose build
+    ```
 
-## Features
+2.  **Run the service:**
+    This will start the FastAPI server on port 8000.
+    ```bash
+docker-compose up
+    ```
 
-### Video Generation & Editing
-- **Create Video**: Generate simple text-on-background videos.
-- **Cut**: Trim videos by start and end time.
-- **Concatenate**: Join multiple videos together.
-- **Resize**: Resize videos by width, height, or scale.
-- **Speed**: Adjust playback speed.
-- **Mirror**: Mirror video along X or Y axis.
-- **Rotate**: Rotate video by degrees.
-- **Crop**: Crop video to specific dimensions.
-- **Margin**: Add colored margins to video.
-- **Fade**: Apply fade-in or fade-out effects.
-- **Loop**: Loop video content.
-- **Time Effects**: Reverse, symmetrize, or freeze video time.
+## 📜 License
 
-### Audio Processing
-- **Volume**: Adjust audio volume.
-- **Extract Audio**: Extract audio track from video.
-- **Audio Fade**: Fade audio in or out.
-- **Audio Loop**: Loop audio track.
-
-### Compositing
-- **Composite**: Stack or grid multiple videos.
-- **Text Overlay**: Add text overlays with customizable properties.
-- **Image Overlay**: Add image overlays with positioning and opacity.
-- **Color Effects**: Apply Black & White, Invert, Brightness, or Contrast effects.
-
-## API Endpoints
-
-### Video Edits (`/video-edits`)
-- `POST /cut`
-- `POST /concatenate`
-- `POST /resize`
-- `POST /speed`
-- `POST /color-effect`
-- `POST /mirror`
-- `POST /rotate`
-- `POST /crop`
-- `POST /margin`
-- `POST /fade`
-- `POST /loop`
-- `POST /time-effect`
-
-### Audio (`/audio`)
-- `POST /volume`
-- `POST /extract`
-- `POST /fade`
-- `POST /loop`
-
-### Compositing (`/compositing`)
-- `POST /composite`
-- `POST /text-overlay`
-- `POST /image-overlay`
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
