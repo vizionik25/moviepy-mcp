@@ -201,20 +201,20 @@ The project is configured for deployment on Fly.io.
 
 **Connection Endpoint:**
 
-By default, the `Dockerfile` sets `MCP_TRANSPORT=http`. When deployed, the MCP server connection endpoint will be:
+By default, the `Dockerfile` sets `MCP_TRANSPORT=sse`. When deployed, the MCP server connection endpoint will be:
+
+*   **SSE Endpoint:** `https://<APP_NAME>.fly.dev/sse`
+*   **Messages Endpoint:** `https://<APP_NAME>.fly.dev/messages/`
+
+**Using HTTP:**
+
+If you prefer to use standard HTTP, you can override the transport environment variable in your `fly.toml` or via the Fly.io CLI.
+
+Set `MCP_TRANSPORT=http` in your configuration. The connection endpoint will then be:
 
 ```
 https://<APP_NAME>.fly.dev/mcp
 ```
-
-**Using Server-Sent Events (SSE):**
-
-If you prefer to use SSE (Server-Sent Events), you can override the transport environment variable in your `fly.toml` or via the Fly.io CLI.
-
-Set `MCP_TRANSPORT=sse` in your configuration. The endpoints will then be:
-
-*   **SSE Endpoint:** `https://<APP_NAME>.fly.dev/sse`
-*   **Messages Endpoint:** `https://<APP_NAME>.fly.dev/messages/`
 
 ## 📜 License
 
