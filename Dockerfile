@@ -34,7 +34,7 @@ COPY start.sh ./
 RUN chmod +x start.sh
 
 # Set environment variables
-ENV MCP_TRANSPORT=http
+ENV MCP_TRANSPORT=sse
 ENV HOST=0.0.0.0
 ENV PORT=8000
 ENV DOMAIN_NAME=localhost
