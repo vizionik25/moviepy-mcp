@@ -44,6 +44,7 @@ def test_router_bad_request(sample_video):
         ("/video-edits/time-effect", {"video_path": sample_video, "effect_type": "freeze"}), # Missing duration
         ("/audio/extract", {"video_path": sample_video}), # Assuming sample_video has no audio
         ("/audio/fade", {"video_path": sample_video, "fade_type": "in", "duration": 1}), # No audio
+        ("/audio/loop", {"video_path": sample_video, "n": 2}), # No audio
         ("/audio/loop", {"video_path": sample_video}), # No audio
         ("/compositing/composite", {"video_paths": [], "method": "stack"}),
         ("/compositing/composite", {"video_paths": [sample_video], "method": "invalid"}),

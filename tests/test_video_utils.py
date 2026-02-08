@@ -1,5 +1,12 @@
 import os
 import pytest
+from unittest.mock import patch
+from video_gen_service.video_utils import (
+    generate_simple_video,
+    process_extract_audio,
+    process_resize_video,
+    process_audio_fade_video,
+    process_audio_loop_video,
 from unittest.mock import MagicMock, patch
 from video_gen_service.video_utils import generate_simple_video, process_audio_loop_video
 from video_gen_service.video_utils import process_concatenate_videos
@@ -24,6 +31,8 @@ from video_gen_service.video_utils import (
     get_unique_output_path,
     process_mirror_video,
     process_time_effect_video,
+    process_fade_video
+)
     process_fade_video,
     process_fade_video
 )
@@ -54,6 +63,8 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # Fix: compare absolute paths
+        assert os.path.abspath(result) == os.path.abspath(output)
         # Use abspath because generate_simple_video returns absolute path
         assert os.path.abspath(result) == os.path.abspath(output)
         assert os.path.abspath(result) == os.path.abspath(output)
@@ -104,6 +115,21 @@ def test_process_audio_loop_video_no_audio(sample_video):
     """
     with pytest.raises(ValueError, match="Video has no audio"):
         process_audio_loop_video(sample_video, n=2)
+
+def test_process_extract_audio_no_audio(sample_video):
+    """Test that extracting audio from a silent video raises ValueError."""
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_extract_audio(sample_video)
+
+def test_process_extract_audio_success(sample_video_with_audio):
+    """Test that extracting audio works for video with audio."""
+    output = process_extract_audio(sample_video_with_audio)
+    try:
+        assert os.path.exists(output)
+        assert os.path.getsize(output) > 0
+    finally:
+        if os.path.exists(output):
+            os.remove(output)
 
 def test_process_resize_video_invalid_args(sample_video):
     """Test that process_resize_video raises ValueError when no resize parameters are provided."""
