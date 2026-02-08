@@ -137,6 +137,9 @@ def test_utils_invalid_args(sample_video):
     with pytest.raises(ValueError):
         process_composite_videos([]) # empty list
 
+    with pytest.raises(ValueError, match="No video paths provided"):
+        process_concatenate_videos([]) # empty list
+
     with pytest.raises(ValueError):
         process_color_effect(sample_video, "invalid")
 
