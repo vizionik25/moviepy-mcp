@@ -1,8 +1,41 @@
+# fly.toml app configuration file generated for video-gen-service
 # fly.toml app configuration file generated for video-gen-service on 2026-02-02T22:49:52Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
+app = "video-gen-service"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # PORT is used by the Python application (mcp_server.py)
+  PORT = "8000"
+  MCP_TRANSPORT = "sse"
+  # DOMAIN_NAME is used by Caddy to bind to port 80.
+  # Caddy acts as a reverse proxy to the Python app on port 8000.
+  DOMAIN_NAME = ":80"
+
+[http_service]
+  # Fly.io sends external traffic to port 80 on the container (Caddy)
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[checks]]
+  # Health check is served by Caddy on port 8080 (configured in Caddyfile)
+  port = 8080
+  type = "http"
+  interval = "10s"
+  timeout = "2s"
+  grace_period = "5s"
+  method = "GET"
+  path = "/healthz"
 app = 'video-gen-service'
 primary_region = 'iad'
 
