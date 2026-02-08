@@ -27,6 +27,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        assert result == os.path.abspath(output)
         # Ensure result ends with the requested output filename (it might be absolute path)
         assert result.endswith(output)
         assert os.path.exists(result)
@@ -40,6 +41,20 @@ def test_process_resize_video_invalid_args(sample_video):
     with pytest.raises(ValueError, match="Must provide scale, width, or height"):
         process_resize_video(sample_video)
 
+def test_process_extract_audio_no_audio():
+    """Test that extracting audio from a silent video raises ValueError."""
+    # Mock os.path.exists to avoid needing a real file
+    # We patch it specifically in the video_utils module
+    with patch("video_gen_service.video_utils.os.path.exists", return_value=True):
+        # Mock VideoFileClip to simulate a video with no audio track
+        with patch("video_gen_service.video_utils.VideoFileClip") as MockVideoFileClip:
+            mock_clip = MagicMock()
+            mock_clip.audio = None
+            # Configure context manager
+            MockVideoFileClip.return_value.__enter__.return_value = mock_clip
+
+            with pytest.raises(ValueError, match="Video has no audio"):
+                process_extract_audio("dummy_video.mp4")
 def test_process_extract_audio_no_audio(sample_video):
     """Test that extracting audio from a silent video raises ValueError."""
     # Using sample_video which has no audio track
