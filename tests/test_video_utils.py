@@ -122,6 +122,46 @@ def test_get_unique_output_path():
         expected_ext = "/path/to/video_test_12345678.avi"
         assert output_mocked_ext == expected_ext
 
+def test_process_resize_video_invalid_args(sample_video):
+    """Test that process_resize_video raises ValueError when no resize parameters are provided."""
+    with pytest.raises(ValueError, match="Must provide scale, width, or height"):
+        process_resize_video(sample_video)
+
+def test_process_extract_audio_no_audio():
+    """Test that extracting audio from a silent video raises ValueError."""
+    # Mock os.path.exists to avoid needing a real file
+    # We patch it specifically in the video_utils module
+    with patch("video_gen_service.video_utils.os.path.exists", return_value=True):
+        # Mock VideoFileClip to simulate a video with no audio track
+        with patch("video_gen_service.video_utils.VideoFileClip") as MockVideoFileClip:
+            mock_clip = MagicMock()
+            mock_clip.audio = None
+            # Configure context manager
+            MockVideoFileClip.return_value.__enter__.return_value = mock_clip
+
+            with pytest.raises(ValueError, match="Video has no audio"):
+                process_extract_audio("dummy_video.mp4")
+
+def test_process_audio_fade_video_no_audio(sample_video):
+    """
+    Test that process_audio_fade_video raises a ValueError when the input video has no audio.
+    """
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_audio_fade_video(sample_video, fade_type="in", duration=1.0)
+
+def test_process_audio_loop_video_no_audio(sample_video):
+    """
+    Test that process_audio_loop_video raises a ValueError with the correct message
+    when provided with a video that has no audio track.
+    """
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_audio_loop_video(sample_video, n=2)
+
+def test_process_color_effect_invalid_type(sample_video):
+    """Test that process_color_effect raises ValueError for unknown effect types."""
+    with pytest.raises(ValueError, match="Unknown effect type: invalid_effect"):
+        process_color_effect(sample_video, "invalid_effect")
+
 def test_process_mirror_video_error_handling(sample_video):
     """Test that process_mirror_video raises ValueError for invalid axis."""
     with pytest.raises(ValueError, match="Axis must be 'x' or 'y'"):
