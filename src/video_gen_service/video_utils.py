@@ -1,9 +1,27 @@
 import os
 import tempfile
 import uuid
+from pathlib import Path
 from typing import List, Optional, Tuple, Union
 from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip, concatenate_videoclips, clips_array, ImageClip, vfx, afx
 from PIL import Image, ImageDraw, ImageFont
+
+def validate_path(path_str: str) -> str:
+    """
+    Validates that a path is within the allowed directories (CWD or /tmp).
+    Returns the resolved absolute path string.
+    """
+    if path_str is None:
+        return None
+
+    path = Path(path_str).resolve()
+    cwd = Path.cwd().resolve()
+    tmp = Path(tempfile.gettempdir()).resolve()
+
+    if not (path.is_relative_to(cwd) or path.is_relative_to(tmp)):
+        raise ValueError(f"Access to path {path_str} is forbidden")
+
+    return str(path)
 
 def get_unique_output_path(original_path: str, suffix: str, ext: str = None) -> str:
     directory, filename = os.path.split(original_path)
@@ -64,6 +82,7 @@ def generate_simple_video(text: str, duration: float = 3.0, output_file: str = "
     """
     Generates a simple video with text on a background.
     """
+    output_file = validate_path(output_file)
     img_path = None
     try:
         # Create image with text
@@ -82,6 +101,9 @@ def generate_simple_video(text: str, duration: float = 3.0, output_file: str = "
             os.remove(img_path)
 
 def process_cut_video(video_path: str, start_time: float, end_time: float, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -94,6 +116,8 @@ def process_cut_video(video_path: str, start_time: float, end_time: float, outpu
     return output_path
 
 def process_concatenate_videos(video_paths: List[str], method: str = "compose", output_path: str = None) -> str:
+    video_paths = [validate_path(p) for p in video_paths]
+    output_path = validate_path(output_path)
     clips = []
     try:
         for path in video_paths:
@@ -115,6 +139,9 @@ def process_concatenate_videos(video_paths: List[str], method: str = "compose", 
             clip.close()
 
 def process_resize_video(video_path: str, width: int = None, height: int = None, scale: float = None, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -137,6 +164,9 @@ def process_resize_video(video_path: str, width: int = None, height: int = None,
     return output_path
 
 def process_speed_video(video_path: str, factor: float, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -149,6 +179,9 @@ def process_speed_video(video_path: str, factor: float, output_path: str = None)
     return output_path
 
 def process_volume_video(video_path: str, factor: float, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -164,6 +197,9 @@ def process_volume_video(video_path: str, factor: float, output_path: str = None
     return output_path
 
 def process_extract_audio(video_path: str, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -178,6 +214,8 @@ def process_extract_audio(video_path: str, output_path: str = None) -> str:
     return output_path
 
 def process_composite_videos(video_paths: List[str], method: str = "stack", size: tuple[int, int] = None, output_path: str = None) -> str:
+    video_paths = [validate_path(p) for p in video_paths]
+    output_path = validate_path(output_path)
     clips = []
     try:
         for path in video_paths:
@@ -208,6 +246,9 @@ def process_composite_videos(video_paths: List[str], method: str = "stack", size
                 pass
 
 def process_text_overlay(video_path: str, text: str, fontsize: int = 50, color: str = "white", position: Union[str, Tuple[int, int]] = "center", duration: float = None, start_time: float = 0.0, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -267,6 +308,10 @@ def process_text_overlay(video_path: str, text: str, fontsize: int = 50, color: 
             os.remove(img_path)
 
 def process_image_overlay(video_path: str, image_path: str, position: Union[str, Tuple[int, int]] = "center", scale: float = None, opacity: float = 1.0, duration: float = None, start_time: float = 0.0, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    image_path = validate_path(image_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video file not found: {video_path}")
     if not os.path.exists(image_path):
@@ -292,6 +337,9 @@ def process_image_overlay(video_path: str, image_path: str, position: Union[str,
     return output_path
 
 def process_color_effect(video_path: str, effect_type: str, factor: float = 1.0, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -314,6 +362,9 @@ def process_color_effect(video_path: str, effect_type: str, factor: float = 1.0,
     return output_path
 
 def process_mirror_video(video_path: str, axis: str = "x", output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -332,6 +383,9 @@ def process_mirror_video(video_path: str, axis: str = "x", output_path: str = No
     return output_path
 
 def process_rotate_video(video_path: str, angle: float, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -344,6 +398,9 @@ def process_rotate_video(video_path: str, angle: float, output_path: str = None)
     return output_path
 
 def process_crop_video(video_path: str, x1: int = None, y1: int = None, x2: int = None, y2: int = None, width: int = None, height: int = None, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -356,6 +413,9 @@ def process_crop_video(video_path: str, x1: int = None, y1: int = None, x2: int 
     return output_path
 
 def process_margin_video(video_path: str, margin: int, color: tuple[int, int, int] = (0, 0, 0), opacity: float = 1.0, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -368,6 +428,9 @@ def process_margin_video(video_path: str, margin: int, color: tuple[int, int, in
     return output_path
 
 def process_fade_video(video_path: str, fade_type: str, duration: float, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -385,6 +448,9 @@ def process_fade_video(video_path: str, fade_type: str, duration: float, output_
     return output_path
 
 def process_loop_video(video_path: str, n: int = None, duration: float = None, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -397,6 +463,9 @@ def process_loop_video(video_path: str, n: int = None, duration: float = None, o
     return output_path
 
 def process_time_effect_video(video_path: str, effect_type: str, duration: float = None, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -419,6 +488,9 @@ def process_time_effect_video(video_path: str, effect_type: str, duration: float
     return output_path
 
 def process_audio_fade_video(video_path: str, fade_type: str, duration: float, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
@@ -441,6 +513,9 @@ def process_audio_fade_video(video_path: str, fade_type: str, duration: float, o
     return output_path
 
 def process_audio_loop_video(video_path: str, n: int = None, duration: float = None, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
     if not os.path.exists(video_path):
         raise FileNotFoundError("Video file not found")
 
