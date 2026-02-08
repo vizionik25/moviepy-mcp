@@ -1,6 +1,6 @@
 import os
 import pytest
-from video_gen_service.video_utils import generate_simple_video
+from video_gen_service.video_utils import generate_simple_video, process_audio_fade_video
 
 def test_generate_simple_video():
     output = "test_output.mp4"
@@ -13,3 +13,10 @@ def test_generate_simple_video():
     finally:
         if os.path.exists(output):
             os.remove(output)
+
+def test_process_audio_fade_video_no_audio(sample_video):
+    """
+    Test that process_audio_fade_video raises a ValueError when the input video has no audio.
+    """
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_audio_fade_video(sample_video, fade_type="in", duration=1.0)
