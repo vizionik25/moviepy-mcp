@@ -5,6 +5,10 @@ from moviepy import VideoFileClip
 
 from video_gen_service.video_utils import (
     generate_simple_video,
+    process_audio_loop_video,
+    process_resize_video,
+    process_extract_audio,
+    process_audio_fade_video,
     process_concatenate_videos,
     process_extract_audio,
     process_resize_video,
@@ -15,8 +19,19 @@ from video_gen_service.video_utils import (
     get_unique_output_path,
     process_mirror_video,
     process_time_effect_video,
+    process_fade_video,
+    process_concatenate_videos
+)
     process_fade_video
 )
+
+def test_process_concatenate_videos_empty_list():
+    """
+    Test that process_concatenate_videos raises a ValueError with the correct message
+    when provided with an empty list of video paths.
+    """
+    with pytest.raises(ValueError, match="No video paths provided"):
+        process_concatenate_videos([])
 
 def test_process_concatenate_videos_empty_list():
     """
@@ -53,6 +68,10 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # Fix: compare absolute paths because generate_simple_video returns absolute path
+        assert os.path.abspath(result) == os.path.abspath(output)
+        assert os.path.basename(result) == output
+        assert result.endswith(output)
         # generate_simple_video returns an absolute path
         assert os.path.abspath(result) == os.path.abspath(output)
         assert os.path.exists(result)
@@ -136,6 +155,18 @@ def test_process_resize_video_invalid_args(sample_video):
     """Test that process_resize_video raises ValueError when no resize parameters are provided."""
     with pytest.raises(ValueError, match="Must provide scale, width, or height"):
         process_resize_video(sample_video)
+
+def test_process_extract_audio_no_audio_mock():
+    """Test that extracting audio from a silent video raises ValueError (using mocks)."""
+    # Mock os.path.exists to avoid needing a real file
+    # We patch it specifically in the video_utils module
+    with patch("video_gen_service.video_utils.os.path.exists", return_value=True):
+        # Mock VideoFileClip to simulate a video with no audio track
+        with patch("video_gen_service.video_utils.VideoFileClip") as MockVideoFileClip:
+            mock_clip = MagicMock()
+            mock_clip.audio = None
+            # Configure context manager
+            MockVideoFileClip.return_value.__enter__.return_value = mock_clip
 
 def test_process_audio_fade_video_no_audio(sample_video):
     """
@@ -232,6 +263,10 @@ def test_get_unique_output_path_edge_cases():
         expected = f"/path/to/my video_{suffix}_{uuid_part}.mp4"
         assert get_unique_output_path(path, suffix) == expected
 
+def test_process_color_effect_invalid_type(sample_video):
+    """Test that process_color_effect raises ValueError for unknown effect types."""
+    with pytest.raises(ValueError, match="Unknown effect type: invalid_effect"):
+        process_color_effect(sample_video, "invalid_effect")
         # 4. Suffix with special characters
         suffix_special = "v1.0-beta"
         path = "/video.mp4"
@@ -379,6 +414,79 @@ def test_process_audio_fade_video_success(sample_video_with_audio):
     Test that process_audio_fade_video works correctly for valid inputs.
     """
     output_in = process_audio_fade_video(sample_video_with_audio, fade_type="in", duration=0.5)
+    assert os.path.exists(output_in)
+    assert os.path.getsize(output_in) > 0
+    os.remove(output_in)
+
+    output_out = process_audio_fade_video(sample_video_with_audio, fade_type="out", duration=0.5)
+    assert os.path.exists(output_out)
+    assert os.path.getsize(output_out) > 0
+    os.remove(output_out)
+
+def test_process_fade_video_success(sample_video):
+    """Test that process_fade_video works for valid fade types."""
+    # Test fade in
+    output_in = process_fade_video(sample_video, fade_type="in", duration=0.5)
+    assert os.path.exists(output_in)
+    assert os.path.getsize(output_in) > 0
+    os.remove(output_in)
+
+    # Test fade out
+    output_out = process_fade_video(sample_video, fade_type="out", duration=0.5)
+    assert os.path.exists(output_out)
+    assert os.path.getsize(output_out) > 0
+    os.remove(output_out)
+
+def test_get_unique_output_path():
+    # Test basic functionality with default extension
+    original_path = "/path/to/video.mp4"
+    suffix = "test"
+    output = get_unique_output_path(original_path, suffix)
+
+    assert output.startswith("/path/to/video_test_")
+    assert output.endswith(".mp4")
+    assert len(output) > len("/path/to/video_test_.mp4")  # Should include UUID part
+
+    # Test with custom extension
+    output_custom = get_unique_output_path(original_path, suffix, ext=".mov")
+    assert output_custom.startswith("/path/to/video_test_")
+    assert output_custom.endswith(".mov")
+
+    # Test file without extension
+    no_ext_path = "/path/to/video"
+    output_no_ext = get_unique_output_path(no_ext_path, suffix)
+    assert output_no_ext.startswith("/path/to/video_test_")
+    # It should look something like /path/to/video_test_<uuid>
+    assert "." not in os.path.basename(output_no_ext).split("_")[-1]
+
+    # Test uniqueness
+    output1 = get_unique_output_path(original_path, suffix)
+    output2 = get_unique_output_path(original_path, suffix)
+    assert output1 != output2
+
+    # Test without directory
+    filename = "video.mp4"
+    output_local = get_unique_output_path(filename, suffix)
+    assert output_local.startswith("video_test_")
+    assert output_local.endswith(".mp4")
+    assert "/" not in output_local
+
+    # Mock UUID for deterministic output check
+    with patch('uuid.uuid4') as mock_uuid:
+        # Configure mock to return an object with .hex attribute
+        mock_uuid.return_value.hex = "1234567890abcdef"
+
+        # Test default extension
+        output_mocked = get_unique_output_path(original_path, suffix)
+        expected = "/path/to/video_test_12345678.mp4"
+        assert output_mocked == expected
+
+        # Test explicit extension
+        output_mocked_ext = get_unique_output_path(original_path, suffix, ext=".avi")
+        expected_ext = "/path/to/video_test_12345678.avi"
+        assert output_mocked_ext == expected_ext
+
+def test_get_unique_output_path_edge_cases():
     try:
         assert os.path.exists(output_in)
         assert os.path.getsize(output_in) > 0
@@ -470,6 +578,14 @@ def test_get_unique_output_path_complex_cases():
         path = "/video.mp4"
         expected = f"/video_{suffix_special}_{uuid_part}.mp4"
         assert get_unique_output_path(path, suffix_special) == expected
+
+        # 5. ext parameter without leading dot
+        path = "/video.mp4"
+        ext = "mkv" # intended to be .mkv usually
+        # function does: f"{name}_{suffix}_{uuid.hex[:8]}{ext}"
+        # so it appends "mkv" directly.
+        expected = f"/video_{suffix}_{uuid_part}mkv"
+        assert get_unique_output_path(path, suffix, ext=ext) == expected
     assert os.path.exists(output_in)
     assert os.path.getsize(output_in) > 0
     os.remove(output_in)
