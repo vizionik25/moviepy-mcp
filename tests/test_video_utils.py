@@ -1,5 +1,6 @@
 import os
 import pytest
+from unittest.mock import MagicMock, patch
 from video_gen_service.video_utils import generate_simple_video, process_audio_loop_video
 from video_gen_service.video_utils import process_concatenate_videos
 
@@ -53,6 +54,8 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # Use abspath because generate_simple_video returns absolute path
+        assert os.path.abspath(result) == os.path.abspath(output)
         assert os.path.abspath(result) == os.path.abspath(output)
         # generate_simple_video returns absolute path, so we check if it ends with our output filename
         # generate_simple_video returns an absolute path, so we check if it ends with our output filename
@@ -285,6 +288,11 @@ def test_process_time_effect_video_error_handling(sample_video):
     # Test freeze effect without duration
     with pytest.raises(ValueError, match="Duration required for freeze effect"):
         process_time_effect_video(sample_video, "freeze", duration=None)
+
+def test_process_fade_video_invalid_type(sample_video):
+    """Test that process_fade_video raises ValueError for invalid fade types."""
+    with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
+        process_fade_video(sample_video, fade_type="invalid", duration=1.0)
 
 def test_process_time_effect_video_success(sample_video):
     """Test successful time effects on video."""
