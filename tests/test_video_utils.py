@@ -1,6 +1,6 @@
 import os
 import pytest
-from video_gen_service.video_utils import generate_simple_video
+from video_gen_service.video_utils import generate_simple_video, process_resize_video
 
 def test_generate_simple_video():
     output = "test_output.mp4"
@@ -13,3 +13,8 @@ def test_generate_simple_video():
     finally:
         if os.path.exists(output):
             os.remove(output)
+
+def test_process_resize_video_invalid_args(sample_video):
+    """Test that process_resize_video raises ValueError when no resize parameters are provided."""
+    with pytest.raises(ValueError, match="Must provide scale, width, or height"):
+        process_resize_video(sample_video)
