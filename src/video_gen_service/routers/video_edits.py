@@ -82,7 +82,6 @@ async def color_effect_video(request: ColorEffectRequest):
             request.effect_type,
             request.factor,
             request.output_path
-            request.output_path,
         )
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
