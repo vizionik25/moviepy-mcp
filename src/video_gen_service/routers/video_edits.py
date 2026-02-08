@@ -11,6 +11,7 @@ from ..video_utils import (
     process_margin_video, process_fade_video, process_loop_video, process_time_effect_video
 )
 import os
+import asyncio
 
 router = APIRouter(prefix="/video-edits", tags=["video-edits"])
 
@@ -159,8 +160,12 @@ async def loop_video(request: LoopRequest):
 @router.post("/time-effect", response_model=ResponseModel)
 async def time_effect_video(request: TimeEffectRequest):
     try:
-        output_path = process_time_effect_video(
-            request.video_path, request.effect_type, request.duration, request.output_path
+        output_path = await asyncio.to_thread(
+            process_time_effect_video,
+            request.video_path,
+            request.effect_type,
+            request.duration,
+            request.output_path
         )
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
