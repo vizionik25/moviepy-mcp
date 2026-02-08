@@ -1,5 +1,15 @@
 import os
 import pytest
+from video_gen_service.video_utils import generate_simple_video, process_audio_loop_video
+from video_gen_service.video_utils import process_concatenate_videos
+
+def test_process_concatenate_videos_empty_list():
+    """
+    Test that process_concatenate_videos raises a ValueError with the correct message
+    when provided with an empty list of video paths.
+    """
+    with pytest.raises(ValueError, match="No video paths provided"):
+        process_concatenate_videos([])
 from unittest.mock import MagicMock, patch
 from moviepy import VideoFileClip
 
@@ -43,6 +53,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        assert os.path.abspath(result) == os.path.abspath(output)
         # generate_simple_video returns absolute path, so we check if it ends with our output filename
         # generate_simple_video returns an absolute path, so we check if it ends with our output filename
         # Check if result ends with the output filename, as it returns an absolute path
