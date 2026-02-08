@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from ..schemas import VolumeRequest, AudioExtractRequest, AudioFadeRequest, AudioLoopRequest, ResponseModel
 from ..video_utils import process_volume_video, process_extract_audio, process_audio_fade_video, process_audio_loop_video
 import os
@@ -34,8 +35,12 @@ async def extract_audio(request: AudioExtractRequest):
 @router.post("/fade", response_model=ResponseModel)
 async def fade_audio(request: AudioFadeRequest):
     try:
-        output_path = process_audio_fade_video(
-            request.video_path, request.fade_type, request.duration, request.output_path
+        output_path = await run_in_threadpool(
+            process_audio_fade_video,
+            request.video_path,
+            request.fade_type,
+            request.duration,
+            request.output_path,
         )
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
