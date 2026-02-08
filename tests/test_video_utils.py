@@ -2,6 +2,9 @@ import os
 import pytest
 from unittest.mock import MagicMock, patch
 from moviepy import VideoFileClip
+
+from video_gen_service.video_utils import (
+    generate_simple_video,
 from video_gen_service.video_utils import (
     generate_simple_video,
 from unittest.mock import patch, MagicMock
@@ -105,6 +108,11 @@ def test_generate_simple_video():
         # Cleanup potentially created file
         # Fix: compare absolute paths
         assert os.path.abspath(result) == os.path.abspath(output)
+        assert os.path.basename(result) == output
+        assert os.path.exists(result)
+        assert os.path.getsize(result) > 0
+    finally:
+        # Cleanup potentially created file
 
         # Check if result ends with the output filename, as it returns an absolute path
         assert os.path.basename(result) == output
@@ -148,7 +156,6 @@ def test_generate_simple_video():
     finally:
         if os.path.exists(output):
             os.remove(output)
-        # Check absolute path too just in case
         abs_path = os.path.abspath(output)
         if os.path.exists(abs_path) and abs_path != output:
             os.remove(abs_path)
@@ -166,6 +173,7 @@ def test_process_extract_audio_success(sample_video_with_audio):
         assert os.path.exists(output)
         assert output.endswith(".mp3")
         assert os.path.getsize(output) > 0
+        assert output.endswith(".mp3")
     finally:
         if os.path.exists(output):
             os.remove(output)
@@ -298,6 +306,7 @@ def test_get_unique_output_path():
     # Test file without extension
     no_ext_path = "/path/to/video"
     output_no_ext = get_unique_output_path(no_ext_path, suffix)
+    assert output_no_ext.startswith("/path/to/video_test_")
     assert "_test_" in output_no_ext
     # It should look something like /path/to/video_test_<uuid>
     assert "." not in os.path.basename(output_no_ext).split("_")[-1]
@@ -754,9 +763,7 @@ def test_get_unique_output_path_complex_cases():
 
         # 5. ext parameter without leading dot
         path = "/video.mp4"
-        ext = "mkv" # intended to be .mkv usually
-        # function does: f"{name}_{suffix}_{uuid.hex[:8]}{ext}"
-        # so it appends "mkv" directly.
+        ext = "mkv"
         expected = f"/video_{suffix}_{uuid_part}mkv"
         assert get_unique_output_path(path, suffix, ext=ext) == expected
 
