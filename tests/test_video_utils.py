@@ -1,5 +1,14 @@
 import os
 import pytest
+from video_gen_service.video_utils import generate_simple_video, process_audio_loop_video
+
+def test_process_audio_loop_video_no_audio(sample_video):
+    """
+    Test that process_audio_loop_video raises a ValueError with the correct message
+    when provided with a video that has no audio track.
+    """
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_audio_loop_video(sample_video, n=2)
 from video_gen_service.video_utils import generate_simple_video, process_resize_video
 from unittest.mock import MagicMock, patch
 from video_gen_service.video_utils import generate_simple_video, process_extract_audio
