@@ -1,5 +1,6 @@
 import os
 import pytest
+from video_gen_service.video_utils import generate_simple_video, process_audio_fade_video
 from video_gen_service.video_utils import generate_simple_video, process_color_effect
 from unittest.mock import patch
 from video_gen_service.video_utils import generate_simple_video, get_unique_output_path
@@ -19,6 +20,12 @@ def test_generate_simple_video():
         if os.path.exists(output):
             os.remove(output)
 
+def test_process_audio_fade_video_no_audio(sample_video):
+    """
+    Test that process_audio_fade_video raises a ValueError when the input video has no audio.
+    """
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_audio_fade_video(sample_video, fade_type="in", duration=1.0)
 def test_process_color_effect_invalid_type(sample_video):
     """Test that process_color_effect raises ValueError for unknown effect types."""
     with pytest.raises(ValueError, match="Unknown effect type: invalid_effect"):
