@@ -27,6 +27,8 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # result is absolute path, output is relative
+        assert result == os.path.abspath(output)
         assert result == os.path.abspath(output)
         # Ensure result ends with the requested output filename (it might be absolute path)
         assert result.endswith(output)
@@ -191,5 +193,20 @@ def test_process_time_effect_video_error_handling(sample_video):
         process_time_effect_video(sample_video, "freeze", duration=None)
 
 def test_process_fade_video_invalid_type(sample_video):
+    """Test that process_fade_video raises ValueError for invalid fade type."""
     with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
         process_fade_video(sample_video, fade_type="invalid", duration=1.0)
+
+def test_process_fade_video_success(sample_video):
+    """Test that process_fade_video works for valid fade types."""
+    # Test fade in
+    output_in = process_fade_video(sample_video, fade_type="in", duration=0.5)
+    assert os.path.exists(output_in)
+    assert os.path.getsize(output_in) > 0
+    os.remove(output_in)
+
+    # Test fade out
+    output_out = process_fade_video(sample_video, fade_type="out", duration=0.5)
+    assert os.path.exists(output_out)
+    assert os.path.getsize(output_out) > 0
+    os.remove(output_out)
