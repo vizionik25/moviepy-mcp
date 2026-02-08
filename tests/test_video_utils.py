@@ -1,6 +1,20 @@
 import os
 import pytest
-from video_gen_service.video_utils import generate_simple_video, process_audio_loop_video
+from unittest.mock import MagicMock, patch
+from moviepy import VideoFileClip
+
+from video_gen_service.video_utils import (
+    generate_simple_video,
+    process_audio_loop_video,
+    process_resize_video,
+    process_extract_audio,
+    process_audio_fade_video,
+    process_color_effect,
+    get_unique_output_path,
+    process_mirror_video,
+    process_time_effect_video,
+    process_fade_video
+)
 
 def test_process_audio_loop_video_no_audio(sample_video):
     """
@@ -9,23 +23,27 @@ def test_process_audio_loop_video_no_audio(sample_video):
     """
     with pytest.raises(ValueError, match="Video has no audio"):
         process_audio_loop_video(sample_video, n=2)
-from video_gen_service.video_utils import generate_simple_video, process_resize_video
-from unittest.mock import MagicMock, patch
-from video_gen_service.video_utils import generate_simple_video, process_extract_audio
-from video_gen_service.video_utils import generate_simple_video, process_audio_fade_video
-from video_gen_service.video_utils import generate_simple_video, process_color_effect
-from unittest.mock import patch
-from video_gen_service.video_utils import generate_simple_video, get_unique_output_path
-from video_gen_service.video_utils import generate_simple_video, process_mirror_video
-from video_gen_service.video_utils import generate_simple_video, process_time_effect_video
-from video_gen_service.video_utils import generate_simple_video, process_fade_video
+
+def test_process_audio_loop_video_success(sample_video_with_audio):
+    """Test that process_audio_loop_video works correctly with valid input."""
+    output = process_audio_loop_video(sample_video_with_audio, n=2)
+    assert os.path.exists(output)
+    assert os.path.getsize(output) > 0
+
+    # Verify the output has audio
+    with VideoFileClip(output) as video:
+         assert video.audio is not None
+
+    if os.path.exists(output):
+        os.remove(output)
 
 def test_generate_simple_video():
     output = "test_output.mp4"
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
-        assert result == output
+        # result is absolute path, output is relative
+        assert os.path.abspath(output) == result
         assert os.path.exists(result)
         assert os.path.getsize(result) > 0
     finally:
@@ -36,6 +54,7 @@ def test_process_resize_video_invalid_args(sample_video):
     """Test that process_resize_video raises ValueError when no resize parameters are provided."""
     with pytest.raises(ValueError, match="Must provide scale, width, or height"):
         process_resize_video(sample_video)
+
 def test_process_extract_audio_no_audio():
     """Test that extracting audio from a silent video raises ValueError."""
     # Mock os.path.exists to avoid needing a real file
@@ -50,16 +69,19 @@ def test_process_extract_audio_no_audio():
 
             with pytest.raises(ValueError, match="Video has no audio"):
                 process_extract_audio("dummy_video.mp4")
+
 def test_process_audio_fade_video_no_audio(sample_video):
     """
     Test that process_audio_fade_video raises a ValueError when the input video has no audio.
     """
     with pytest.raises(ValueError, match="Video has no audio"):
         process_audio_fade_video(sample_video, fade_type="in", duration=1.0)
+
 def test_process_color_effect_invalid_type(sample_video):
     """Test that process_color_effect raises ValueError for unknown effect types."""
     with pytest.raises(ValueError, match="Unknown effect type: invalid_effect"):
         process_color_effect(sample_video, "invalid_effect")
+
 def test_get_unique_output_path():
     # Test basic functionality with default extension
     original_path = "/path/to/video.mp4"
@@ -108,6 +130,7 @@ def test_get_unique_output_path():
         output_mocked_ext = get_unique_output_path(original_path, suffix, ext=".avi")
         expected_ext = "/path/to/video_test_12345678.avi"
         assert output_mocked_ext == expected_ext
+
 def test_process_mirror_video_error_handling(sample_video):
     """Test that process_mirror_video raises ValueError for invalid axis."""
     with pytest.raises(ValueError, match="Axis must be 'x' or 'y'"):
@@ -124,6 +147,7 @@ def test_process_mirror_video_success(sample_video):
     assert os.path.exists(output_y)
     assert os.path.getsize(output_y) > 0
     os.remove(output_y)
+
 def test_process_time_effect_video_error_handling(sample_video):
     """Test error handling for process_time_effect_video."""
 
@@ -134,6 +158,7 @@ def test_process_time_effect_video_error_handling(sample_video):
     # Test freeze effect without duration
     with pytest.raises(ValueError, match="Duration required for freeze effect"):
         process_time_effect_video(sample_video, "freeze", duration=None)
+
 def test_process_fade_video_invalid_type(sample_video):
     with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
         process_fade_video(sample_video, fade_type="invalid", duration=1.0)
