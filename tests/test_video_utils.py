@@ -28,6 +28,8 @@ def test_generate_simple_video():
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
         assert result == os.path.abspath(output)
+        # Ensure result ends with the requested output filename (it might be absolute path)
+        assert result.endswith(output)
         assert os.path.exists(result)
         assert os.path.getsize(result) > 0
     finally:
@@ -53,6 +55,11 @@ def test_process_extract_audio_no_audio():
 
             with pytest.raises(ValueError, match="Video has no audio"):
                 process_extract_audio("dummy_video.mp4")
+def test_process_extract_audio_no_audio(sample_video):
+    """Test that extracting audio from a silent video raises ValueError."""
+    # Using sample_video which has no audio track
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_extract_audio(sample_video)
 
 def test_process_audio_fade_video_no_audio(sample_video):
     """
