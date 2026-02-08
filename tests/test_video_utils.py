@@ -13,6 +13,7 @@ from video_gen_service.video_utils import (
     get_unique_output_path,
     process_mirror_video,
     process_time_effect_video,
+    process_fade_video,
     process_fade_video
 )
 
@@ -42,6 +43,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # generate_simple_video returns an absolute path, so we check if it ends with our output filename
         # Check if result ends with the output filename, as it returns an absolute path
         assert os.path.basename(result) == output
         assert result == os.path.abspath(output)
@@ -59,6 +61,10 @@ def test_generate_simple_video():
         # Cleanup potentially created file (absolute path or relative)
         if os.path.exists(output):
             os.remove(output)
+        # Also try to remove absolute path if returned differently
+        abs_output = os.path.abspath(output)
+        if os.path.exists(abs_output):
+            os.remove(abs_output)
         # Also try to remove absolute path if known/different
         # But 'result' might be out of scope if exception occurred, so rely on 'output'
         # If 'result' is returned, we can try cleaning it too
@@ -244,11 +250,14 @@ def test_process_mirror_video_success(sample_video):
     output_x = process_mirror_video(sample_video, axis="x")
     assert os.path.exists(output_x)
     assert os.path.getsize(output_x) > 0
-    os.remove(output_x)
+    if os.path.exists(output_x):
+        os.remove(output_x)
 
     output_y = process_mirror_video(sample_video, axis="y")
     assert os.path.exists(output_y)
     assert os.path.getsize(output_y) > 0
+    if os.path.exists(output_y):
+        os.remove(output_y)
     os.remove(output_y)
 
 def test_process_time_effect_video_error_handling(sample_video):
