@@ -21,6 +21,8 @@ from video_gen_service.video_utils import (
     get_unique_output_path,
     process_mirror_video,
     process_time_effect_video,
+    process_fade_video,
+    process_concatenate_videos
     process_fade_video
 )
 
@@ -83,6 +85,7 @@ def test_generate_simple_video():
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
 
+        # Check if result matches expected output path (handling absolute paths)
         # generate_simple_video returns absolute path
         assert result == os.path.abspath(output)
         assert os.path.exists(result)
@@ -105,6 +108,12 @@ def test_generate_simple_video():
         assert os.path.exists(result)
         assert os.path.getsize(result) > 0
     finally:
+        # Cleanup
+        if os.path.exists(output):
+            os.remove(output)
+        abs_output = os.path.abspath(output)
+        if os.path.exists(abs_output) and abs_output != output:
+            os.remove(abs_output)
         if os.path.exists(output):
             os.remove(output)
         if os.path.exists(os.path.abspath(output)):
