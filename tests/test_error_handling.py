@@ -52,6 +52,8 @@ def test_router_bad_request(sample_video):
 
     for endpoint, data in endpoints:
         response = client.post(endpoint, json=data)
+        # Some might return 500 if not handled by router exception handler, but we generally expect 400 or 500
+        # Ideally should be 400.
         if response.status_code not in [400, 500]:
              print(f"Failed for {endpoint}: {response.status_code} - {response.json()}")
         assert response.status_code in [400, 500], f"Failed for {endpoint}"

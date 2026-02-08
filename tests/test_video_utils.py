@@ -1,13 +1,13 @@
 import os
 import pytest
+from unittest.mock import patch, MagicMock
 from unittest.mock import MagicMock, patch
 from moviepy import VideoFileClip
 
 from video_gen_service.video_utils import (
     generate_simple_video,
-    process_audio_loop_video,
-    process_resize_video,
     process_extract_audio,
+    process_resize_video,
     process_audio_fade_video,
     process_concatenate_videos,
     process_extract_audio,
@@ -43,9 +43,11 @@ def test_process_concatenate_videos_empty_list():
 
 def test_process_audio_loop_video_no_audio(sample_video):
     """
-    Test that process_audio_loop_video raises a ValueError with the correct message
-    when provided with a video that has no audio track.
+    Test that process_concatenate_videos raises a ValueError with the correct message
+    when provided with an empty list of video paths.
     """
+    with pytest.raises(ValueError, match="No video paths provided"):
+        process_concatenate_videos([])
     with pytest.raises(ValueError, match="Video has no audio"):
         process_audio_loop_video(sample_video, n=2)
 
@@ -68,6 +70,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+
         # Fix: compare absolute paths because generate_simple_video returns absolute path
         assert os.path.abspath(result) == os.path.abspath(output)
         assert os.path.basename(result) == output
@@ -107,6 +110,7 @@ def test_generate_simple_video():
 
 def test_process_extract_audio_no_audio(sample_video):
     """Test that extracting audio from a silent video raises ValueError."""
+    # Using sample_video which has no audio track
     with pytest.raises(ValueError, match="Video has no audio"):
         process_extract_audio(sample_video)
 
@@ -186,6 +190,27 @@ def test_process_audio_fade_video_no_audio(sample_video):
     with pytest.raises(ValueError, match="Video has no audio"):
         process_audio_fade_video(sample_video, fade_type="in", duration=1.0)
 
+def test_process_audio_loop_video_no_audio(sample_video):
+    """
+    Test that process_audio_loop_video raises a ValueError with the correct message
+    when provided with a video that has no audio track.
+    """
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_audio_loop_video(sample_video, n=2)
+
+def test_process_audio_loop_video_success(sample_video_with_audio):
+    """Test that process_audio_loop_video works correctly with valid input."""
+    output = process_audio_loop_video(sample_video_with_audio, n=2)
+    assert os.path.exists(output)
+    assert os.path.getsize(output) > 0
+
+    # Verify the output has audio
+    with VideoFileClip(output) as video:
+         assert video.audio is not None
+
+    if os.path.exists(output):
+        os.remove(output)
+
 def test_process_color_effect_invalid_type(sample_video):
     """Test that process_color_effect raises ValueError for unknown effect types."""
     with pytest.raises(ValueError, match="Unknown effect type: invalid_effect"):
@@ -245,6 +270,30 @@ def test_get_unique_output_path_edge_cases():
     with patch('uuid.uuid4') as mock_uuid:
         mock_uuid.return_value.hex = "1234567890abcdef"
         uuid_part = "12345678"
+
+        # 1. Filename without extension
+        path = "/path/to/file"
+        expected = f"/path/to/file_{suffix}_{uuid_part}"
+        assert get_unique_output_path(path, suffix) == expected
+
+        # 2. Filename with multiple dots
+        path = "/path/to/archive.tar.gz"
+        # os.path.splitext splits at the LAST dot
+        # 'archive.tar', '.gz'
+        expected = f"/path/to/archive.tar_{suffix}_{uuid_part}.gz"
+        assert get_unique_output_path(path, suffix) == expected
+
+        # 3. Path with spaces
+        path = "/path/to/my video.mp4"
+        expected = f"/path/to/my video_{suffix}_{uuid_part}.mp4"
+        assert get_unique_output_path(path, suffix) == expected
+
+        # 4. Suffix with special characters
+        suffix_special = "v1.0-beta"
+        path = "/video.mp4"
+        expected = f"/video_{suffix_special}_{uuid_part}.mp4"
+        assert get_unique_output_path(path, suffix_special) == expected
+
 
         # 1. Filename without extension
         path = "/path/to/file"
@@ -413,6 +462,8 @@ def test_process_audio_fade_video_success(sample_video_with_audio):
     """
     Test that process_audio_fade_video works correctly for valid inputs.
     """
+    # Test fade in
+    output_in = process_audio_fade_video(sample_video_with_audio, fade_type="in", duration=0.5)
     output_in = process_audio_fade_video(sample_video_with_audio, fade_type="in", duration=0.5)
     assert os.path.exists(output_in)
     assert os.path.getsize(output_in) > 0
@@ -590,6 +641,7 @@ def test_get_unique_output_path_complex_cases():
     assert os.path.getsize(output_in) > 0
     os.remove(output_in)
 
+    # Test fade out
     output_out = process_audio_fade_video(sample_video_with_audio, fade_type="out", duration=0.5)
     assert os.path.exists(output_out)
     assert os.path.getsize(output_out) > 0
