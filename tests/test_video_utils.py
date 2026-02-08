@@ -1,6 +1,6 @@
 import os
 import pytest
-from video_gen_service.video_utils import generate_simple_video
+from video_gen_service.video_utils import generate_simple_video, process_color_effect
 
 def test_generate_simple_video():
     output = "test_output.mp4"
@@ -13,3 +13,8 @@ def test_generate_simple_video():
     finally:
         if os.path.exists(output):
             os.remove(output)
+
+def test_process_color_effect_invalid_type(sample_video):
+    """Test that process_color_effect raises ValueError for unknown effect types."""
+    with pytest.raises(ValueError, match="Unknown effect type: invalid_effect"):
+        process_color_effect(sample_video, "invalid_effect")
