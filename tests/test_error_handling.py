@@ -44,6 +44,7 @@ def test_router_bad_request(sample_video):
         ("/video-edits/time-effect", {"video_path": sample_video, "effect_type": "freeze"}), # Missing duration
         ("/audio/extract", {"video_path": sample_video}), # Assuming sample_video has no audio
         ("/audio/fade", {"video_path": sample_video, "fade_type": "in", "duration": 1}), # No audio
+        ("/audio/loop", {"video_path": sample_video}), # No audio
         ("/compositing/composite", {"video_paths": [], "method": "stack"}),
         ("/compositing/composite", {"video_paths": [sample_video], "method": "invalid"}),
     ]
@@ -56,11 +57,22 @@ def test_router_bad_request(sample_video):
 
 def test_router_bad_request_audio_loop(sample_video):
      # Endpoints known to return 400 on error (ValueError caught)
+def test_router_bad_request_loop(sample_video):
+     # Test audio loop endpoint bad request
+
+    response = client.post("/audio/loop", json={"video_path": sample_video})
+def test_router_bad_request_audio_loop(sample_video):
+    # Test that invalid audio loop parameters return 400
+def test_router_bad_request_500(sample_video):
+     # Endpoints known to return 500 on error (ValueError not explicitly caught)
+     # This test is now updated to expect 400 as ValueError is handled
+     # Endpoints that previously returned 500 but now return 400
     endpoints = [
          ("/audio/loop", {"video_path": sample_video}), # Invalid loop params? Or no audio?
     ]
 
     response = client.post("/audio/loop", json={"video_path": sample_video})
+    assert response.status_code in [400, 500]
     assert response.status_code == 400
 
 def test_utils_file_not_found():
