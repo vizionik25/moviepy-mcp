@@ -58,6 +58,10 @@ def test_router_bad_request(sample_video):
              print(f"Failed for {endpoint}: {response.status_code} - {response.json()}")
         assert response.status_code in [400, 500], f"Failed for {endpoint}"
 
+def test_router_bad_request_audio_loop(sample_video):
+    # Test that invalid audio loop parameters return 400
+    response = client.post("/audio/loop", json={"video_path": sample_video, "n": 2})
+    assert response.status_code == 400
 
 def test_utils_file_not_found():
     # Direct util calls
