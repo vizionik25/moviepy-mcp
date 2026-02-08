@@ -1,6 +1,15 @@
 import os
 import pytest
 from video_gen_service.video_utils import generate_simple_video, process_audio_loop_video
+from video_gen_service.video_utils import process_concatenate_videos
+
+def test_process_concatenate_videos_empty_list():
+    """
+    Test that process_concatenate_videos raises a ValueError with the correct message
+    when provided with an empty list of video paths.
+    """
+    with pytest.raises(ValueError, match="No video paths provided"):
+        process_concatenate_videos([])
 
 def test_process_audio_loop_video_no_audio(sample_video):
     """
@@ -25,7 +34,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
-        assert result == output
+        assert os.path.abspath(result) == os.path.abspath(output)
         assert os.path.exists(result)
         assert os.path.getsize(result) > 0
     finally:
