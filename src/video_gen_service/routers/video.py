@@ -22,5 +22,7 @@ async def generate_video_endpoint(request: VideoRequest):
         # In a real app, manage temp files or upload to storage
         result = generate_simple_video(request.text, request.duration, filename)
         return VideoResponse(status="success", file_path=os.path.abspath(result))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
