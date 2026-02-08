@@ -42,6 +42,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # Check if result ends with the output filename, as it returns an absolute path
         assert os.path.basename(result) == output
         assert result == os.path.abspath(output)
         # result is absolute path, output is relative
@@ -55,6 +56,13 @@ def test_generate_simple_video():
         assert os.path.exists(result)
         assert os.path.getsize(result) > 0
     finally:
+        # Cleanup potentially created file (absolute path or relative)
+        if os.path.exists(output):
+            os.remove(output)
+        # Also try to remove absolute path if known/different
+        # But 'result' might be out of scope if exception occurred, so rely on 'output'
+        # If 'result' is returned, we can try cleaning it too
+        pass
         # Cleanup potentially absolute path
         if os.path.exists(output):
             os.remove(output)
