@@ -6,6 +6,8 @@ from moviepy import VideoFileClip
 
 from video_gen_service.video_utils import (
     generate_simple_video,
+    process_concatenate_videos,
+    process_audio_loop_video,
     process_extract_audio,
     process_resize_video,
     process_audio_fade_video,
@@ -19,6 +21,16 @@ from video_gen_service.video_utils import (
     get_unique_output_path,
     process_mirror_video,
     process_time_effect_video,
+    process_fade_video
+)
+
+def test_process_concatenate_videos_empty_list():
+    """
+    Test that process_concatenate_videos raises a ValueError with the correct message
+    when provided with an empty list of video paths.
+    """
+    with pytest.raises(ValueError, match="No video paths provided"):
+        process_concatenate_videos([])
     process_fade_video,
     process_concatenate_videos
 )
@@ -70,6 +82,11 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # Fix: compare absolute paths
+        assert os.path.abspath(result) == os.path.abspath(output)
+        # Check if result ends with the output filename, as it returns an absolute path
+        assert os.path.basename(result) == output
+        assert result == os.path.abspath(output)
 
         # Fix: compare absolute paths because generate_simple_video returns absolute path
         assert os.path.abspath(result) == os.path.abspath(output)
@@ -190,6 +207,26 @@ def test_process_audio_fade_video_no_audio(sample_video):
     with pytest.raises(ValueError, match="Video has no audio"):
         process_audio_fade_video(sample_video, fade_type="in", duration=1.0)
 
+def test_process_audio_fade_video_invalid_type(sample_video_with_audio):
+    """
+    Test that process_audio_fade_video raises a ValueError for invalid fade types.
+    """
+    with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
+        process_audio_fade_video(sample_video_with_audio, fade_type="invalid", duration=1.0)
+
+def test_process_audio_fade_video_success(sample_video_with_audio):
+    """
+    Test that process_audio_fade_video works correctly for valid inputs.
+    """
+    output_in = process_audio_fade_video(sample_video_with_audio, fade_type="in", duration=0.5)
+    assert os.path.exists(output_in)
+    assert os.path.getsize(output_in) > 0
+    os.remove(output_in)
+
+    output_out = process_audio_fade_video(sample_video_with_audio, fade_type="out", duration=0.5)
+    assert os.path.exists(output_out)
+    assert os.path.getsize(output_out) > 0
+    os.remove(output_out)
 def test_process_audio_loop_video_no_audio(sample_video):
     """
     Test that process_audio_loop_video raises a ValueError with the correct message
@@ -450,6 +487,55 @@ def test_process_fade_video_success(sample_video):
     assert os.path.exists(output_out)
     assert os.path.getsize(output_out) > 0
     os.remove(output_out)
+
+def test_get_unique_output_path():
+    # Test basic functionality with default extension
+    original_path = "/path/to/video.mp4"
+    suffix = "test"
+    output = get_unique_output_path(original_path, suffix)
+
+    assert output.startswith("/path/to/video_test_")
+    assert output.endswith(".mp4")
+    assert len(output) > len("/path/to/video_test_.mp4")  # Should include UUID part
+
+    # Test with custom extension
+    output_custom = get_unique_output_path(original_path, suffix, ext=".mov")
+    assert output_custom.startswith("/path/to/video_test_")
+    assert output_custom.endswith(".mov")
+
+    # Test file without extension
+    no_ext_path = "/path/to/video"
+    output_no_ext = get_unique_output_path(no_ext_path, suffix)
+    assert output_no_ext.startswith("/path/to/video_test_")
+    # It should look something like /path/to/video_test_<uuid>
+    assert "." not in os.path.basename(output_no_ext).split("_")[-1]
+
+    # Test uniqueness
+    output1 = get_unique_output_path(original_path, suffix)
+    output2 = get_unique_output_path(original_path, suffix)
+    assert output1 != output2
+
+    # Test without directory
+    filename = "video.mp4"
+    output_local = get_unique_output_path(filename, suffix)
+    assert output_local.startswith("video_test_")
+    assert output_local.endswith(".mp4")
+    assert "/" not in output_local
+
+    # Mock UUID for deterministic output check
+    with patch('uuid.uuid4') as mock_uuid:
+        # Configure mock to return an object with .hex attribute
+        mock_uuid.return_value.hex = "1234567890abcdef"
+
+        # Test default extension
+        output_mocked = get_unique_output_path(original_path, suffix)
+        expected = "/path/to/video_test_12345678.mp4"
+        assert output_mocked == expected
+
+        # Test explicit extension
+        output_mocked_ext = get_unique_output_path(original_path, suffix, ext=".avi")
+        expected_ext = "/path/to/video_test_12345678.avi"
+        assert output_mocked_ext == expected_ext
 
 def test_process_audio_fade_video_invalid_type(sample_video_with_audio):
     """
