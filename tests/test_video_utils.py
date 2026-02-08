@@ -123,6 +123,14 @@ def test_generate_simple_video():
         # Cleanup potentially created file
         # Fix: compare absolute paths
         assert os.path.abspath(result) == os.path.abspath(output)
+        assert os.path.exists(result)
+        assert os.path.getsize(result) > 0
+    finally:
+        if os.path.exists(output):
+            os.remove(output)
+        abs_output = os.path.abspath(output)
+        if os.path.exists(abs_output) and abs_output != output:
+            os.remove(abs_output)
         assert os.path.basename(result) == output
         assert os.path.exists(result)
         assert os.path.getsize(result) > 0
@@ -310,6 +318,7 @@ def test_get_unique_output_path():
     suffix = "test"
     output = get_unique_output_path(original_path, suffix)
 
+    assert "/video_test_" in output
     assert "_test_" in output
     assert output.endswith(".mp4")
     # Should include UUID part
@@ -317,12 +326,14 @@ def test_get_unique_output_path():
 
     # Test with custom extension
     output_custom = get_unique_output_path(original_path, suffix, ext=".mov")
+    assert "/video_test_" in output_custom
     assert "_test_" in output_custom
     assert output_custom.endswith(".mov")
 
     # Test file without extension
     no_ext_path = "/path/to/video"
     output_no_ext = get_unique_output_path(no_ext_path, suffix)
+    assert "/video_test_" in output_no_ext
     assert output_no_ext.startswith("/path/to/video_test_")
     assert "_test_" in output_no_ext
     # It should look something like /path/to/video_test_<uuid>
@@ -638,6 +649,8 @@ def test_process_audio_fade_video_success(sample_video_with_audio):
 
     output_out = process_audio_fade_video(sample_video_with_audio, fade_type="out", duration=0.5)
     assert os.path.exists(output_out)
+    os.remove(output_out)
+
     assert os.path.getsize(output_out) > 0
     os.remove(output_out)
 
