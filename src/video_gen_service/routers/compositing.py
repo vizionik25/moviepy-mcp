@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from ..schemas import CompositeRequest, TextOverlayRequest, ImageOverlayRequest, ResponseModel
 from ..video_utils import process_composite_videos, process_text_overlay, process_image_overlay
 import os
+import asyncio
 
 router = APIRouter(prefix="/compositing", tags=["compositing"])
 
@@ -35,7 +36,8 @@ async def text_overlay(request: TextOverlayRequest):
 @router.post("/image-overlay", response_model=ResponseModel)
 async def image_overlay(request: ImageOverlayRequest):
     try:
-        output_path = process_image_overlay(
+        output_path = await asyncio.to_thread(
+            process_image_overlay,
             request.video_path, request.image_path, request.position, request.scale,
             request.opacity, request.duration, request.start_time, request.output_path
         )
