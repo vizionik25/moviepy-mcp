@@ -23,6 +23,8 @@ async def cut_video(request: CutRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -63,6 +65,8 @@ async def speed_video(request: SpeedRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -103,6 +107,8 @@ async def rotate_video(request: RotateRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -115,6 +121,8 @@ async def crop_video(request: CropRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -127,6 +135,8 @@ async def margin_video(request: MarginRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -153,6 +163,8 @@ async def loop_video(request: LoopRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

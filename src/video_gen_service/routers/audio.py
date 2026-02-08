@@ -14,6 +14,8 @@ async def adjust_volume(request: VolumeRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -54,5 +56,7 @@ async def loop_audio(request: AudioLoopRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
