@@ -56,13 +56,9 @@ def test_router_bad_request(sample_video):
 
 def test_router_bad_request_500(sample_video):
      # Endpoints known to return 500 on error (ValueError not explicitly caught)
-    endpoints = [
-         ("/audio/loop", {"video_path": sample_video}), # Invalid loop params? Or no audio?
-         # loop_video also returns 500 on ValueError if any
-    ]
-
+     # This test is now updated to expect 400 as ValueError is handled
     response = client.post("/audio/loop", json={"video_path": sample_video})
-    assert response.status_code == 500
+    assert response.status_code == 400
 
 def test_utils_file_not_found():
     # Direct util calls
