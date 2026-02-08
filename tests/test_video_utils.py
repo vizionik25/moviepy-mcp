@@ -84,6 +84,7 @@ def test_generate_simple_video():
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
         # Fix: compare absolute paths
         assert os.path.abspath(result) == os.path.abspath(output)
+
         # Check if result ends with the output filename, as it returns an absolute path
         assert os.path.basename(result) == output
         assert result == os.path.abspath(output)
@@ -324,6 +325,13 @@ def test_get_unique_output_path_edge_cases():
         path = "/path/to/my video.mp4"
         expected = f"/path/to/my video_{suffix}_{uuid_part}.mp4"
         assert get_unique_output_path(path, suffix) == expected
+
+        # 4. Suffix with special characters
+        suffix_special = "v1.0-beta"
+        path = "/video.mp4"
+        expected = f"/video_{suffix_special}_{uuid_part}.mp4"
+        assert get_unique_output_path(path, suffix_special) == expected
+
 
         # 4. Suffix with special characters
         suffix_special = "v1.0-beta"
