@@ -58,6 +58,8 @@ def test_router_bad_request(sample_video):
 def test_router_bad_request_audio_loop(sample_video):
     # Test that invalid audio loop parameters return 400
 def test_router_bad_request_500(sample_video):
+     # Endpoints known to return 500 on error (ValueError not explicitly caught)
+     # This test is now updated to expect 400 as ValueError is handled
      # Endpoints that previously returned 500 but now return 400
     endpoints = [
          ("/audio/loop", {"video_path": sample_video}), # Invalid loop params? Or no audio?

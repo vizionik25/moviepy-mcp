@@ -42,6 +42,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        assert os.path.basename(result) == output
         assert result == os.path.abspath(output)
         # result is absolute path, output is relative
         assert os.path.abspath(output) == result
@@ -57,6 +58,10 @@ def test_generate_simple_video():
         # Cleanup potentially absolute path
         if os.path.exists(output):
             os.remove(output)
+        # Check absolute path too just in case
+        abs_path = os.path.abspath(output)
+        if os.path.exists(abs_path):
+            os.remove(abs_path)
         elif os.path.exists(os.path.abspath(output)):
              os.remove(os.path.abspath(output))
 
@@ -248,6 +253,27 @@ def test_process_time_effect_video_error_handling(sample_video):
     # Test freeze effect without duration
     with pytest.raises(ValueError, match="Duration required for freeze effect"):
         process_time_effect_video(sample_video, "freeze", duration=None)
+
+def test_process_time_effect_video_success(sample_video):
+    """Test successful time effects on video."""
+
+    # Test reverse
+    output_reverse = process_time_effect_video(sample_video, "reverse")
+    assert os.path.exists(output_reverse)
+    assert os.path.getsize(output_reverse) > 0
+    os.remove(output_reverse)
+
+    # Test symmetrize
+    output_symmetrize = process_time_effect_video(sample_video, "symmetrize")
+    assert os.path.exists(output_symmetrize)
+    assert os.path.getsize(output_symmetrize) > 0
+    os.remove(output_symmetrize)
+
+    # Test freeze
+    output_freeze = process_time_effect_video(sample_video, "freeze", duration=1.0)
+    assert os.path.exists(output_freeze)
+    assert os.path.getsize(output_freeze) > 0
+    os.remove(output_freeze)
 
 def test_process_fade_video_invalid_type(sample_video):
     """Test that process_fade_video raises ValueError for invalid fade type."""
