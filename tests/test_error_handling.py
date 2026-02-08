@@ -55,6 +55,15 @@ def test_router_bad_request(sample_video):
              print(f"Failed for {endpoint}: {response.status_code} - {response.json()}")
         assert response.status_code in [400, 500], f"Failed for {endpoint}"
 
+def test_router_bad_request_500(sample_video):
+     # Endpoints that previously returned 500 but now return 400
+    endpoints = [
+         ("/audio/loop", {"video_path": sample_video}), # Invalid loop params? Or no audio?
+    ]
+
+    response = client.post("/audio/loop", json={"video_path": sample_video})
+    assert response.status_code == 400
+
 def test_utils_file_not_found():
     # Direct util calls
     with pytest.raises(FileNotFoundError):
