@@ -1,5 +1,6 @@
 import os
 import pytest
+from video_gen_service.video_utils import generate_simple_video, process_color_effect
 from unittest.mock import patch
 from video_gen_service.video_utils import generate_simple_video, get_unique_output_path
 from video_gen_service.video_utils import generate_simple_video, process_mirror_video
@@ -18,6 +19,10 @@ def test_generate_simple_video():
         if os.path.exists(output):
             os.remove(output)
 
+def test_process_color_effect_invalid_type(sample_video):
+    """Test that process_color_effect raises ValueError for unknown effect types."""
+    with pytest.raises(ValueError, match="Unknown effect type: invalid_effect"):
+        process_color_effect(sample_video, "invalid_effect")
 def test_get_unique_output_path():
     # Test basic functionality with default extension
     original_path = "/path/to/video.mp4"
