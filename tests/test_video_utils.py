@@ -42,6 +42,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        assert result == os.path.abspath(output)
         # result is absolute path, output is relative
         assert os.path.abspath(output) == result
         # generate_simple_video returns absolute path
@@ -71,6 +72,14 @@ def test_process_resize_video_invalid_args(sample_video):
     """Test that process_resize_video raises ValueError when no resize parameters are provided."""
     with pytest.raises(ValueError, match="Must provide scale, width, or height"):
         process_resize_video(sample_video)
+
+def test_process_audio_loop_video_no_audio(sample_video):
+    """
+    Test that process_audio_loop_video raises a ValueError with the correct message
+    when provided with a video that has no audio track.
+    """
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_audio_loop_video(sample_video, n=2)
 
 def test_process_extract_audio_no_audio_mock():
     """Test that extracting audio from a silent video raises ValueError (using mocks)."""
