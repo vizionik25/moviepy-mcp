@@ -2,8 +2,10 @@ import os
 import pytest
 from unittest.mock import MagicMock, patch
 from moviepy import VideoFileClip
+
 from video_gen_service.video_utils import (
     generate_simple_video,
+    process_concatenate_videos,
     process_extract_audio,
     process_resize_video,
     process_audio_fade_video,
@@ -51,6 +53,15 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # generate_simple_video returns an absolute path
+        assert os.path.abspath(result) == os.path.abspath(output)
+        assert os.path.exists(result)
+        assert os.path.getsize(result) > 0
+    finally:
+        if os.path.exists(output):
+            os.remove(output)
+        if os.path.exists(os.path.abspath(output)):
+             os.remove(os.path.abspath(output))
 
         # generate_simple_video returns absolute path
         assert result == os.path.abspath(output)
@@ -81,7 +92,7 @@ def test_process_extract_audio_no_audio(sample_video):
         process_extract_audio(sample_video)
 
 def test_process_extract_audio_success(sample_video_with_audio):
-    """Test that extracting audio works for video with audio."""
+    """Test that extracting audio from a video with audio works correctly."""
     output = process_extract_audio(sample_video_with_audio)
     try:
         assert os.path.exists(output)
@@ -208,6 +219,25 @@ def test_get_unique_output_path_edge_cases():
         path = "/path/to/file"
         expected = f"/path/to/file_{suffix}_{uuid_part}"
         assert get_unique_output_path(path, suffix) == expected
+
+        # 2. Filename with multiple dots
+        path = "/path/to/archive.tar.gz"
+        # os.path.splitext splits at the LAST dot
+        # 'archive.tar', '.gz'
+        expected = f"/path/to/archive.tar_{suffix}_{uuid_part}.gz"
+        assert get_unique_output_path(path, suffix) == expected
+
+        # 3. Path with spaces
+        path = "/path/to/my video.mp4"
+        expected = f"/path/to/my video_{suffix}_{uuid_part}.mp4"
+        assert get_unique_output_path(path, suffix) == expected
+
+        # 4. Suffix with special characters
+        suffix_special = "v1.0-beta"
+        path = "/video.mp4"
+        expected = f"/video_{suffix_special}_{uuid_part}.mp4"
+        assert get_unique_output_path(path, suffix_special) == expected
+
 
         # 2. Filename with multiple dots
         path = "/path/to/archive.tar.gz"
