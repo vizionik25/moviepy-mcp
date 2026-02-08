@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from ..schemas import (
     CutRequest, ConcatenateRequest, ResizeRequest, SpeedRequest, ColorEffectRequest,
     MirrorRequest, RotateRequest, CropRequest, MarginRequest, FadeRequest, LoopRequest, TimeEffectRequest,
@@ -69,8 +70,12 @@ async def speed_video(request: SpeedRequest):
 @router.post("/color-effect", response_model=ResponseModel)
 async def color_effect_video(request: ColorEffectRequest):
     try:
-        output_path = process_color_effect(
-            request.video_path, request.effect_type, request.factor, request.output_path
+        output_path = await run_in_threadpool(
+            process_color_effect,
+            request.video_path,
+            request.effect_type,
+            request.factor,
+            request.output_path
         )
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
