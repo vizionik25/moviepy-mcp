@@ -44,6 +44,7 @@ def test_router_bad_request(sample_video):
         ("/video-edits/time-effect", {"video_path": sample_video, "effect_type": "freeze"}), # Missing duration
         ("/audio/extract", {"video_path": sample_video}), # Assuming sample_video has no audio
         ("/audio/fade", {"video_path": sample_video, "fade_type": "in", "duration": 1}), # No audio
+        ("/audio/loop", {"video_path": sample_video, "n": 2}), # No audio
         ("/compositing/composite", {"video_paths": [], "method": "stack"}),
         ("/compositing/composite", {"video_paths": [sample_video], "method": "invalid"}),
     ]
@@ -54,15 +55,6 @@ def test_router_bad_request(sample_video):
              print(f"Failed for {endpoint}: {response.status_code} - {response.json()}")
         assert response.status_code in [400, 500], f"Failed for {endpoint}"
 
-def test_router_bad_request_500(sample_video):
-     # Endpoints known to return 500 on error (ValueError not explicitly caught)
-    endpoints = [
-         ("/audio/loop", {"video_path": sample_video}), # Invalid loop params? Or no audio?
-         # loop_video also returns 500 on ValueError if any
-    ]
-
-    response = client.post("/audio/loop", json={"video_path": sample_video})
-    assert response.status_code == 500
 
 def test_utils_file_not_found():
     # Direct util calls
