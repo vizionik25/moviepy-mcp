@@ -1,6 +1,8 @@
 import os
 import pytest
 from unittest.mock import MagicMock, patch
+from moviepy import VideoFileClip
+
 from video_gen_service.video_utils import (
     generate_simple_video,
     process_audio_loop_video,
@@ -22,11 +24,26 @@ def test_process_audio_loop_video_no_audio(sample_video):
     with pytest.raises(ValueError, match="Video has no audio"):
         process_audio_loop_video(sample_video, n=2)
 
+def test_process_audio_loop_video_success(sample_video_with_audio):
+    """Test that process_audio_loop_video works correctly with valid input."""
+    output = process_audio_loop_video(sample_video_with_audio, n=2)
+    assert os.path.exists(output)
+    assert os.path.getsize(output) > 0
+
+    # Verify the output has audio
+    with VideoFileClip(output) as video:
+         assert video.audio is not None
+
+    if os.path.exists(output):
+        os.remove(output)
+
 def test_generate_simple_video():
     output = "test_output.mp4"
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # result is absolute path, output is relative
+        assert os.path.abspath(output) == result
         # generate_simple_video returns absolute path
         # result is absolute path, output is relative
         assert result == os.path.abspath(output)
