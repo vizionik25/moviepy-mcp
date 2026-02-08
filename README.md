@@ -206,6 +206,11 @@ By default, the `Dockerfile` sets `MCP_TRANSPORT=sse`. When deployed, the MCP se
 *   **SSE Endpoint:** `https://<APP_NAME>.fly.dev/sse`
 *   **Messages Endpoint:** `https://<APP_NAME>.fly.dev/messages/`
 
+**Using HTTP Transport:**
+
+If you prefer to use stateless HTTP (JSON-RPC over HTTP), you can override the transport environment variable in your `fly.toml` or via the Fly.io CLI.
+
+Set `MCP_TRANSPORT=http` in your configuration. The endpoint will then be:
 **Using HTTP:**
 
 If you prefer to use standard HTTP, you can override the transport environment variable in your `fly.toml` or via the Fly.io CLI.

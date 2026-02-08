@@ -6,7 +6,7 @@ services:
       - "443:443"
       # - "8000:8000" # Direct access disabled for production
     environment:
-      - MCP_TRANSPORT=http
+      - MCP_TRANSPORT=sse
       - HOST=0.0.0.0
       - PORT=8000
       - DOMAIN_NAME=localhost

@@ -6,6 +6,9 @@
 app = 'video-gen-service'
 primary_region = 'iad'
 
+[env]
+  MCP_TRANSPORT = "sse"
+
 [build]
 
 [http_service]
