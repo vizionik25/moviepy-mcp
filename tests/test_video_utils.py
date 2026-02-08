@@ -1,5 +1,6 @@
 import os
 import pytest
+from video_gen_service.video_utils import generate_simple_video, process_resize_video
 from unittest.mock import MagicMock, patch
 from video_gen_service.video_utils import generate_simple_video, process_extract_audio
 from video_gen_service.video_utils import generate_simple_video, process_audio_fade_video
@@ -22,6 +23,10 @@ def test_generate_simple_video():
         if os.path.exists(output):
             os.remove(output)
 
+def test_process_resize_video_invalid_args(sample_video):
+    """Test that process_resize_video raises ValueError when no resize parameters are provided."""
+    with pytest.raises(ValueError, match="Must provide scale, width, or height"):
+        process_resize_video(sample_video)
 def test_process_extract_audio_no_audio():
     """Test that extracting audio from a silent video raises ValueError."""
     # Mock os.path.exists to avoid needing a real file
