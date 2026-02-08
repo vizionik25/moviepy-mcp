@@ -301,6 +301,18 @@ def test_process_fade_video_invalid_type(sample_video):
     with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
         process_fade_video(sample_video, fade_type="invalid", duration=1.0)
 
+def test_process_audio_fade_video_invalid_type(sample_video_with_audio):
+    """
+    Test that process_audio_fade_video raises a ValueError for invalid fade types.
+    """
+    with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
+        process_audio_fade_video(sample_video_with_audio, fade_type="invalid", duration=1.0)
+
+def test_process_audio_fade_video_success(sample_video_with_audio):
+    """
+    Test that process_audio_fade_video works correctly for valid inputs.
+    """
+    output_in = process_audio_fade_video(sample_video_with_audio, fade_type="in", duration=0.5)
 def test_get_unique_output_path_edge_cases():
     suffix = "test"
     with patch('uuid.uuid4') as mock_uuid:
@@ -345,6 +357,7 @@ def test_process_fade_video_success(sample_video):
     assert os.path.getsize(output_in) > 0
     os.remove(output_in)
 
+    output_out = process_audio_fade_video(sample_video_with_audio, fade_type="out", duration=0.5)
     # Test fade out
     output_out = process_fade_video(sample_video, fade_type="out", duration=0.5)
     assert os.path.exists(output_out)
