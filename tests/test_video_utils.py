@@ -1,5 +1,9 @@
 import os
 import pytest
+from unittest.mock import MagicMock, patch
+from moviepy import VideoFileClip
+from video_gen_service.video_utils import (
+    generate_simple_video,
 from unittest.mock import patch, MagicMock
 from unittest.mock import MagicMock, patch
 from moviepy import VideoFileClip
@@ -85,6 +89,13 @@ def test_generate_simple_video():
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
 
+        # generate_simple_video returns absolute path
+        assert result == os.path.abspath(output)
+        assert os.path.exists(result)
+        assert os.path.getsize(result) > 0
+    finally:
+        if os.path.exists(output):
+            os.remove(output)
         # Check if result matches expected output path (handling absolute paths)
         # generate_simple_video returns absolute path
         assert result == os.path.abspath(output)
@@ -566,6 +577,15 @@ def test_process_audio_fade_video_success(sample_video_with_audio):
     """
     # Test fade in
     output_in = process_audio_fade_video(sample_video_with_audio, fade_type="in", duration=0.5)
+    assert os.path.exists(output_in)
+    assert os.path.getsize(output_in) > 0
+    os.remove(output_in)
+
+    output_out = process_audio_fade_video(sample_video_with_audio, fade_type="out", duration=0.5)
+    assert os.path.exists(output_out)
+    assert os.path.getsize(output_out) > 0
+    os.remove(output_out)
+
     output_in = process_audio_fade_video(sample_video_with_audio, fade_type="in", duration=0.5)
     assert os.path.exists(output_in)
     assert os.path.getsize(output_in) > 0
