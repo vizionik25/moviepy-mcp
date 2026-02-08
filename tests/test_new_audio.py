@@ -56,4 +56,4 @@ def test_audio_loop_no_audio(sample_video):
         "video_path": sample_video,
         "n": 2
     })
-    assert response.status_code == 500
+    assert response.status_code == 400
