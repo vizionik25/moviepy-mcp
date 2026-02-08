@@ -92,13 +92,11 @@ class TimeEffectRequest(ClipRequest):
     effect_type: str = Field(..., description="Time effect type: 'reverse', 'symmetrize', 'freeze'")
     duration: Optional[float] = Field(None, description="Duration for 'freeze'")
 
-class AudioFadeRequest(ClipRequest):
-    fade_type: str = Field(..., description="Fade type: 'in' or 'out'")
-    duration: float = Field(..., description="Duration of the fade in seconds")
+class AudioFadeRequest(FadeRequest):
+    pass
 
-class AudioLoopRequest(ClipRequest):
-    n: Optional[int] = Field(None, description="Number of times to loop")
-    duration: Optional[float] = Field(None, description="Duration to loop for")
+class AudioLoopRequest(LoopRequest):
+    pass
 
 class ResponseModel(BaseModel):
     status: str
