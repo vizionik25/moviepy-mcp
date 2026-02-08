@@ -2,6 +2,9 @@ import os
 import pytest
 from unittest.mock import patch
 from video_gen_service.video_utils import generate_simple_video, get_unique_output_path
+from video_gen_service.video_utils import generate_simple_video, process_mirror_video
+from video_gen_service.video_utils import generate_simple_video, process_time_effect_video
+from video_gen_service.video_utils import generate_simple_video, process_fade_video
 
 def test_generate_simple_video():
     output = "test_output.mp4"
@@ -63,3 +66,32 @@ def test_get_unique_output_path():
         output_mocked_ext = get_unique_output_path(original_path, suffix, ext=".avi")
         expected_ext = "/path/to/video_test_12345678.avi"
         assert output_mocked_ext == expected_ext
+def test_process_mirror_video_error_handling(sample_video):
+    """Test that process_mirror_video raises ValueError for invalid axis."""
+    with pytest.raises(ValueError, match="Axis must be 'x' or 'y'"):
+        process_mirror_video(sample_video, axis="z")
+
+def test_process_mirror_video_success(sample_video):
+    """Test that process_mirror_video works for valid axis."""
+    output_x = process_mirror_video(sample_video, axis="x")
+    assert os.path.exists(output_x)
+    assert os.path.getsize(output_x) > 0
+    os.remove(output_x)
+
+    output_y = process_mirror_video(sample_video, axis="y")
+    assert os.path.exists(output_y)
+    assert os.path.getsize(output_y) > 0
+    os.remove(output_y)
+def test_process_time_effect_video_error_handling(sample_video):
+    """Test error handling for process_time_effect_video."""
+
+    # Test unknown effect type
+    with pytest.raises(ValueError, match="Unknown time effect: invalid_effect"):
+        process_time_effect_video(sample_video, "invalid_effect")
+
+    # Test freeze effect without duration
+    with pytest.raises(ValueError, match="Duration required for freeze effect"):
+        process_time_effect_video(sample_video, "freeze", duration=None)
+def test_process_fade_video_invalid_type(sample_video):
+    with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
+        process_fade_video(sample_video, fade_type="invalid", duration=1.0)
