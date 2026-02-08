@@ -27,6 +27,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # generate_simple_video returns absolute path
         # result is absolute path, output is relative
         assert result == os.path.abspath(output)
         assert result == os.path.abspath(output)
@@ -35,14 +36,27 @@ def test_generate_simple_video():
         assert os.path.exists(result)
         assert os.path.getsize(result) > 0
     finally:
+        # Cleanup potentially absolute path
         if os.path.exists(output):
             os.remove(output)
+        elif os.path.exists(os.path.abspath(output)):
+             os.remove(os.path.abspath(output))
+
+def test_process_audio_loop_video_no_audio(sample_video):
+    """
+    Test that process_audio_loop_video raises a ValueError with the correct message
+    when provided with a video that has no audio track.
+    """
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_audio_loop_video(sample_video, n=2)
 
 def test_process_resize_video_invalid_args(sample_video):
     """Test that process_resize_video raises ValueError when no resize parameters are provided."""
     with pytest.raises(ValueError, match="Must provide scale, width, or height"):
         process_resize_video(sample_video)
 
+def test_process_extract_audio_no_audio_mock():
+    """Test that extracting audio from a silent video raises ValueError (using mocks)."""
 def test_process_extract_audio_no_audio():
     """Test that extracting audio from a silent video raises ValueError."""
     # Mock os.path.exists to avoid needing a real file
@@ -57,6 +71,23 @@ def test_process_extract_audio_no_audio():
 
             with pytest.raises(ValueError, match="Video has no audio"):
                 process_extract_audio("dummy_video.mp4")
+
+def test_process_extract_audio_no_audio_integration(sample_video):
+    """Test that extracting audio from a silent video raises ValueError (using real video)."""
+    with pytest.raises(ValueError, match="Video has no audio"):
+        process_extract_audio(sample_video)
+
+def test_process_extract_audio_success(sample_video_with_audio):
+    """Test that extracting audio from a video with audio works correctly."""
+    output = process_extract_audio(sample_video_with_audio)
+    try:
+        assert os.path.exists(output)
+        assert output.endswith(".mp3")
+        assert os.path.getsize(output) > 0
+    finally:
+        if os.path.exists(output):
+            os.remove(output)
+
 def test_process_extract_audio_no_audio(sample_video):
     """Test that extracting audio from a silent video raises ValueError."""
     # Using sample_video which has no audio track
