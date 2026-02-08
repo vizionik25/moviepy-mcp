@@ -43,6 +43,7 @@ def test_generate_simple_video():
     try:
         # Use a short duration for speed
         result = generate_simple_video("Test Video", duration=0.5, output_file=output)
+        # generate_simple_video returns absolute path, so we check if it ends with our output filename
         # generate_simple_video returns an absolute path, so we check if it ends with our output filename
         # Check if result ends with the output filename, as it returns an absolute path
         assert os.path.basename(result) == output
@@ -61,6 +62,9 @@ def test_generate_simple_video():
         # Cleanup potentially created file (absolute path or relative)
         if os.path.exists(output):
             os.remove(output)
+        # Also try to remove the absolute path version if it's different and exists
+        if os.path.exists(os.path.abspath(output)):
+             os.remove(os.path.abspath(output))
         # Also try to remove absolute path if returned differently
         abs_output = os.path.abspath(output)
         if os.path.exists(abs_output):
@@ -297,6 +301,42 @@ def test_process_fade_video_invalid_type(sample_video):
     with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
         process_fade_video(sample_video, fade_type="invalid", duration=1.0)
 
+def test_get_unique_output_path_edge_cases():
+    suffix = "test"
+    with patch('uuid.uuid4') as mock_uuid:
+        mock_uuid.return_value.hex = "1234567890abcdef"
+        uuid_part = "12345678"
+
+        # 1. Filename without extension
+        path = "/path/to/file"
+        expected = f"/path/to/file_{suffix}_{uuid_part}"
+        assert get_unique_output_path(path, suffix) == expected
+
+        # 2. Filename with multiple dots
+        path = "/path/to/archive.tar.gz"
+        # os.path.splitext splits at the LAST dot
+        # 'archive.tar', '.gz'
+        expected = f"/path/to/archive.tar_{suffix}_{uuid_part}.gz"
+        assert get_unique_output_path(path, suffix) == expected
+
+        # 3. Path with spaces
+        path = "/path/to/my video.mp4"
+        expected = f"/path/to/my video_{suffix}_{uuid_part}.mp4"
+        assert get_unique_output_path(path, suffix) == expected
+
+        # 4. Suffix with special characters
+        suffix_special = "v1.0-beta"
+        path = "/video.mp4"
+        expected = f"/video_{suffix_special}_{uuid_part}.mp4"
+        assert get_unique_output_path(path, suffix_special) == expected
+
+        # 5. ext parameter without leading dot
+        path = "/video.mp4"
+        ext = "mkv" # intended to be .mkv usually
+        # function does: f"{name}_{suffix}_{uuid.hex[:8]}{ext}"
+        # so it appends "mkv" directly.
+        expected = f"/video_{suffix}_{uuid_part}mkv"
+        assert get_unique_output_path(path, suffix, ext=ext) == expected
 def test_process_fade_video_success(sample_video):
     """Test that process_fade_video works for valid fade types."""
     # Test fade in
