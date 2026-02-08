@@ -1,6 +1,7 @@
 import os
 import pytest
 from video_gen_service.video_utils import generate_simple_video, process_time_effect_video
+from video_gen_service.video_utils import generate_simple_video, process_fade_video
 
 def test_generate_simple_video():
     output = "test_output.mp4"
@@ -24,3 +25,6 @@ def test_process_time_effect_video_error_handling(sample_video):
     # Test freeze effect without duration
     with pytest.raises(ValueError, match="Duration required for freeze effect"):
         process_time_effect_video(sample_video, "freeze", duration=None)
+def test_process_fade_video_invalid_type(sample_video):
+    with pytest.raises(ValueError, match="Fade type must be 'in' or 'out'"):
+        process_fade_video(sample_video, fade_type="invalid", duration=1.0)

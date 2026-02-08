@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from ..schemas import (
     CutRequest, ConcatenateRequest, ResizeRequest, SpeedRequest, ColorEffectRequest,
     MirrorRequest, RotateRequest, CropRequest, MarginRequest, FadeRequest, LoopRequest, TimeEffectRequest,
@@ -11,6 +12,7 @@ from ..video_utils import (
     process_margin_video, process_fade_video, process_loop_video, process_time_effect_video
 )
 import os
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="/video-edits", tags=["video-edits"])
 
@@ -23,6 +25,8 @@ async def cut_video(request: CutRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -63,14 +67,20 @@ async def speed_video(request: SpeedRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/color-effect", response_model=ResponseModel)
 async def color_effect_video(request: ColorEffectRequest):
     try:
-        output_path = process_color_effect(
-            request.video_path, request.effect_type, request.factor, request.output_path
+        output_path = await run_in_threadpool(
+            process_color_effect,
+            request.video_path,
+            request.effect_type,
+            request.factor,
+            request.output_path,
         )
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
@@ -103,6 +113,8 @@ async def rotate_video(request: RotateRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -115,6 +127,8 @@ async def crop_video(request: CropRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -127,14 +141,20 @@ async def margin_video(request: MarginRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/fade", response_model=ResponseModel)
 async def fade_video(request: FadeRequest):
     try:
-        output_path = process_fade_video(
-            request.video_path, request.fade_type, request.duration, request.output_path
+        output_path = await run_in_threadpool(
+            process_fade_video,
+            request.video_path,
+            request.fade_type,
+            request.duration,
+            request.output_path,
         )
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
@@ -153,6 +173,8 @@ async def loop_video(request: LoopRequest):
         return ResponseModel(status="success", output_path=output_path)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
