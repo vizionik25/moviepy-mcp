@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 from video_gen_service.main import app
 import pytest
+import os
+import tempfile
 from video_gen_service.video_utils import (
     process_cut_video, process_concatenate_videos, process_resize_video,
     process_speed_video, process_volume_video, process_extract_audio,
@@ -14,19 +16,23 @@ from video_gen_service.video_utils import (
 client = TestClient(app)
 
 def test_router_file_not_found():
+    # Use paths in temp dir to pass validation but trigger FileNotFoundError
+    missing_mp4 = os.path.join(tempfile.gettempdir(), "missing.mp4")
+    missing_png = os.path.join(tempfile.gettempdir(), "missing.png")
+
     # Test a few endpoints for 404 on missing file
     endpoints = [
-        ("/video-edits/cut", {"video_path": "missing.mp4", "start_time": 0, "end_time": 1}),
-        ("/video-edits/resize", {"video_path": "missing.mp4", "scale": 0.5}),
-        ("/video-edits/speed", {"video_path": "missing.mp4", "factor": 2.0}),
-        ("/video-edits/color-effect", {"video_path": "missing.mp4", "effect_type": "invert"}),
-        ("/video-edits/mirror", {"video_path": "missing.mp4", "axis": "x"}),
-        ("/audio/volume", {"video_path": "missing.mp4", "factor": 0.5}),
-        ("/audio/extract", {"video_path": "missing.mp4"}),
-        ("/video-edits/concatenate", {"video_paths": ["missing.mp4"], "method": "compose"}),
-        ("/compositing/composite", {"video_paths": ["missing.mp4"], "method": "stack"}),
-        ("/compositing/text-overlay", {"video_path": "missing.mp4", "text": "test"}),
-        ("/compositing/image-overlay", {"video_path": "missing.mp4", "image_path": "missing.png"}),
+        ("/video-edits/cut", {"video_path": missing_mp4, "start_time": 0, "end_time": 1}),
+        ("/video-edits/resize", {"video_path": missing_mp4, "scale": 0.5}),
+        ("/video-edits/speed", {"video_path": missing_mp4, "factor": 2.0}),
+        ("/video-edits/color-effect", {"video_path": missing_mp4, "effect_type": "invert"}),
+        ("/video-edits/mirror", {"video_path": missing_mp4, "axis": "x"}),
+        ("/audio/volume", {"video_path": missing_mp4, "factor": 0.5}),
+        ("/audio/extract", {"video_path": missing_mp4}),
+        ("/video-edits/concatenate", {"video_paths": [missing_mp4], "method": "compose"}),
+        ("/compositing/composite", {"video_paths": [missing_mp4], "method": "stack"}),
+        ("/compositing/text-overlay", {"video_path": missing_mp4, "text": "test"}),
+        ("/compositing/image-overlay", {"video_path": missing_mp4, "image_path": missing_png}),
     ]
 
     for endpoint, data in endpoints:
@@ -53,84 +59,81 @@ def test_router_bad_request(sample_video):
     for endpoint, data in endpoints:
         response = client.post(endpoint, json=data)
         if response.status_code != 400:
-        # Some might return 500 if not handled by router exception handler, but we generally expect 400 or 500
-        # Ideally should be 400.
-        if response.status_code not in [400, 500]:
              print(f"Failed for {endpoint}: {response.status_code} - {response.json()}")
         assert response.status_code == 400, f"Failed for {endpoint}"
 
-def test_router_bad_request_loop(sample_video):
-     # Test audio loop endpoint bad request
-    response = client.post("/audio/loop", json={"video_path": sample_video})
-    assert response.status_code in [400, 500]
-    response = client.post("/audio/loop", json={"video_path": sample_video})
 def test_router_bad_request_audio_loop(sample_video):
     # Test that invalid audio loop parameters return 400
     response = client.post("/audio/loop", json={"video_path": sample_video, "n": 2})
     assert response.status_code == 400
 
-def test_utils_file_not_found():
+def test_utils_file_not_found(sample_video):
+    # Use paths in temp dir to pass validation but trigger FileNotFoundError
+    missing_mp4 = os.path.join(tempfile.gettempdir(), "missing.mp4")
+    missing_png = os.path.join(tempfile.gettempdir(), "missing.png")
+
     # Direct util calls
     with pytest.raises(FileNotFoundError):
-        process_cut_video("missing.mp4", 0, 1)
+        process_cut_video(missing_mp4, 0, 1)
 
     with pytest.raises(FileNotFoundError):
-        process_concatenate_videos(["missing.mp4"])
+        process_concatenate_videos([missing_mp4])
 
     with pytest.raises(FileNotFoundError):
-        process_resize_video("missing.mp4", scale=0.5)
+        process_resize_video(missing_mp4, scale=0.5)
 
     with pytest.raises(FileNotFoundError):
-        process_speed_video("missing.mp4", 2.0)
+        process_speed_video(missing_mp4, 2.0)
 
     with pytest.raises(FileNotFoundError):
-        process_volume_video("missing.mp4", 0.5)
+        process_volume_video(missing_mp4, 0.5)
 
     with pytest.raises(FileNotFoundError):
-        process_extract_audio("missing.mp4")
+        process_extract_audio(missing_mp4)
 
     with pytest.raises(FileNotFoundError):
-        process_composite_videos(["missing.mp4"])
+        process_composite_videos([missing_mp4])
 
     with pytest.raises(FileNotFoundError):
-        process_text_overlay("missing.mp4", "text")
+        process_text_overlay(missing_mp4, "text")
 
     with pytest.raises(FileNotFoundError):
-        process_image_overlay("missing.mp4", "missing.png")
+        process_image_overlay(missing_mp4, missing_png)
 
     with pytest.raises(FileNotFoundError):
         # file exists but image missing
-        process_image_overlay("src/video_gen_service/main.py", "missing.png")
+        # Updated to use sample_video (valid path) but missing image
+        process_image_overlay(sample_video, missing_png)
 
     with pytest.raises(FileNotFoundError):
-        process_color_effect("missing.mp4", "invert")
+        process_color_effect(missing_mp4, "invert")
 
     with pytest.raises(FileNotFoundError):
-        process_mirror_video("missing.mp4")
+        process_mirror_video(missing_mp4)
 
     with pytest.raises(FileNotFoundError):
-        process_rotate_video("missing.mp4", 90)
+        process_rotate_video(missing_mp4, 90)
 
     with pytest.raises(FileNotFoundError):
-        process_crop_video("missing.mp4")
+        process_crop_video(missing_mp4)
 
     with pytest.raises(FileNotFoundError):
-        process_margin_video("missing.mp4", 10)
+        process_margin_video(missing_mp4, 10)
 
     with pytest.raises(FileNotFoundError):
-        process_fade_video("missing.mp4", "in", 1)
+        process_fade_video(missing_mp4, "in", 1)
 
     with pytest.raises(FileNotFoundError):
-        process_loop_video("missing.mp4")
+        process_loop_video(missing_mp4)
 
     with pytest.raises(FileNotFoundError):
-        process_time_effect_video("missing.mp4", "reverse")
+        process_time_effect_video(missing_mp4, "reverse")
 
     with pytest.raises(FileNotFoundError):
-        process_audio_fade_video("missing.mp4", "in", 1)
+        process_audio_fade_video(missing_mp4, "in", 1)
 
     with pytest.raises(FileNotFoundError):
-        process_audio_loop_video("missing.mp4")
+        process_audio_loop_video(missing_mp4)
 
 def test_utils_invalid_args(sample_video):
     with pytest.raises(ValueError):

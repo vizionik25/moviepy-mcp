@@ -38,6 +38,10 @@ ENV MCP_TRANSPORT=sse
 ENV HOST=0.0.0.0
 ENV PORT=8000
 ENV DOMAIN_NAME=localhost
+ENV VIDEO_STORAGE_DIR=/app/storage
+
+# Create storage directory
+RUN mkdir -p /app/storage
 
 # Expose ports
 EXPOSE 80 443 8000

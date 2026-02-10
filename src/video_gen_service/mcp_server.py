@@ -6,7 +6,8 @@ from video_gen_service.video_utils import (
     process_color_effect, process_image_overlay,
     process_mirror_video, process_rotate_video, process_crop_video,
     process_margin_video, process_fade_video, process_loop_video,
-    process_time_effect_video, process_audio_fade_video, process_audio_loop_video
+    process_time_effect_video, process_audio_fade_video, process_audio_loop_video,
+    SAFE_DIR
 )
 import os
 from typing import List
@@ -23,7 +24,7 @@ def create_video(text: str, duration: float = 3.0) -> str:
     try:
         safe_text = "".join(c for c in text if c.isalnum() or c in (' ', '_', '-')).strip()
         safe_text = safe_text.replace(' ', '_')[:50]
-        output_file = f"video_{safe_text}.mp4"
+        output_file = str(SAFE_DIR / f"video_{safe_text}.mp4")
 
         result = generate_simple_video(text, duration, output_file)
         return f"Video generated successfully at: {os.path.abspath(result)}"
