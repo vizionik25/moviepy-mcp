@@ -1,20 +1,20 @@
 #!/bin/bash
 
 # Function to handle signals
-cleanup() {
-    echo "Received termination signal, shutting down..."
-    [ -n "$APP_PID" ] && kill -SIGTERM "$APP_PID" 2>/dev/null
-    [ -n "$CADDY_PID" ] && kill -SIGTERM "$CADDY_PID" 2>/dev/null
-    wait
-    exit 0
-}
+#cleanup() {
+#    echo "Received termination signal, shutting down..."
+#    [ -n "$APP_PID" ] && kill -SIGTERM "$APP_PID" 2>/dev/null
+#    [ -n "$CADDY_PID" ] && kill -SIGTERM "$CADDY_PID" 2>/dev/null
+#    wait
+#    exit 0
+#}
 
 # Trap signals
-trap cleanup SIGTERM SIGINT
+#trap cleanup SIGTERM SIGINT
 
 # Start the application in the background
 echo "Starting application..."
-uv run python -m video_gen_service.mcp_server &
+uv run src/video_gen_service/mcp_server.py &
 APP_PID=$!
 
 # Start Caddy in the background
@@ -24,12 +24,12 @@ CADDY_PID=$!
 
 # Wait for any process to exit
 # wait -n waits for the next background job to finish
-wait -n
+#wait -n
 
 # If we get here, one process exited unexpectedly.
 # We should kill the other and exit.
-echo "One process exited unexpectedly. Shutting down..."
-[ -n "$APP_PID" ] && kill -SIGTERM "$APP_PID" 2>/dev/null
-[ -n "$CADDY_PID" ] && kill -SIGTERM "$CADDY_PID" 2>/dev/null
-wait
-exit 1
+#echo "One process exited unexpectedly. Shutting down..."
+#[ -n "$APP_PID" ] && kill -SIGTERM "$APP_PID" 2>/dev/null
+#[ -n "$CADDY_PID" ] && kill -SIGTERM "$CADDY_PID" 2>/dev/null
+#wait
+#exit 1

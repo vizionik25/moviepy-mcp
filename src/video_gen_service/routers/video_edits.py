@@ -9,13 +9,28 @@ from ..video_utils import (
     process_cut_video, process_concatenate_videos, process_resize_video,
     process_speed_video, process_color_effect,
     process_mirror_video, process_rotate_video, process_crop_video,
-    process_margin_video, process_fade_video, process_loop_video, process_time_effect_video
+    process_margin_video, process_fade_video, process_loop_video, process_time_effect_video,
+    process_detect_highlights
 )
 import os
 import asyncio
 from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="/video-edits", tags=["video-edits"])
+
+@router.post("/detect-highlights", response_model=ResponseModel)
+async def detect_highlights(request: DetectRequest):
+    try:
+        output = process_detect_highlights(
+            request.video_path, request.threshold, request.output
+        )
+        return ResponseModel(status="success", output=output)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/cut", response_model=ResponseModel)
 async def cut_video(request: CutRequest):

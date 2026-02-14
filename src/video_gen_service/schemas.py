@@ -8,6 +8,11 @@ class TimeRange(BaseModel):
     start: float = Field(0.0, description="Start time in seconds")
     end: Optional[float] = Field(None, description="End time in seconds")
 
+class DetectHighlights(TimeRange):
+    video_path: str = Field(..., description="Path to the input video file")
+    start: float = Field(0.0, description="Start time in seconds to start processing")
+    threshold: float = Field(5.0, description="Motion detection sensitivity threshold")
+
 class ClipRequest(BaseModel):
     video_path: str = Field(..., description="Path to the input video file")
     output_path: Optional[str] = Field(None, description="Path to save the output video")

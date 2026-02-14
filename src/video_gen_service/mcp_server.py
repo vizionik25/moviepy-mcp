@@ -6,13 +6,31 @@ from video_gen_service.video_utils import (
     process_color_effect, process_image_overlay,
     process_mirror_video, process_rotate_video, process_crop_video,
     process_margin_video, process_fade_video, process_loop_video,
-    process_time_effect_video, process_audio_fade_video, process_audio_loop_video
+    process_time_effect_video, process_audio_fade_video, process_audio_loop_video,
+    detect_highlights
 )
 import os
 from typing import List
 
 # Create the MCP server
 mcp = FastMCP("Video Gen Service")
+
+@mcp.tool()
+def detect_highlights(video_path: str, Threshold: float = 5.0) ->  str:
+    """
+    Analyzes moments within a video file where Hightened motion activity occurs.
+    Which is the Industry Standard for detecting High Virality Potential Moments
+    within video files. This tool only creates an output of a listing of start &
+    end timestamps. Therefore you must use the output  as the input data for another
+    tool such as the cut_video tool.
+    """
+    try:
+        clips = dict[0:10]
+        output = clips
+        result = process_detect_highlights(video_path, Threshold)
+        return f"{output}"
+    except Exception as e:
+        return f"Error generating viral moments list: {str(e)}"
 
 @mcp.tool()
 def create_video(text: str, duration: float = 3.0) -> str:

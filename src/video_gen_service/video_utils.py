@@ -1,6 +1,7 @@
 import os
 import tempfile
 import uuid
+import cv2
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip, concatenate_videoclips, clips_array, ImageClip, vfx, afx
@@ -99,6 +100,62 @@ def generate_simple_video(text: str, duration: float = 3.0, output_file: str = "
         # Cleanup
         if img_path and os.path.exists(img_path):
             os.remove(img_path)
+
+def process_detect_highlights(video_path, threshold=5.0):
+    cap = cv2.VideoCapture(video_path)
+    ret, frame1 = cap.read()
+    if not ret:
+        print("Error reading video.")
+        return
+
+    prvs = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+    hsv = np.zeros_like(frame1)
+    hsv[..., 1] = 255
+
+    print(f"Analyzing {video_path} for high motion (Threshold: {threshold})...")
+
+    while True:
+        ret, frame2 = cap.read()
+        if not ret:
+            break
+
+        next_frame = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+
+        # Calculate Dense Optical Flow (Farneback Algorithm)
+        # Parameters: prev, next, flow, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, flags
+        flow = cv2.calcOpticalFlowFarneback(prvs, next_frame, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
+        # Convert Cartesian coordinates (x, y) to Polar coordinates (magnitude, angle)
+        mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
+
+        # Visualization (Optional - Colors direction of motion)
+        hsv[..., 0] = ang * 180 / np.pi / 2
+        hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+        bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+        # ALGORITHM: Highlight Detection
+        # Calculate the mean motion intensity of the frame
+        avg_motion = np.mean(mag)
+
+        # Get current timestamp in seconds
+        timestamp = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+
+        if avg_motion > threshold:
+            print(f"🔥 Highlight Detected at {timestamp:.2f}s (Intensity: {avg_motion:.2f})")
+            # Draw a red border to visualize the detection
+            cv2.rectangle(bgr, (0, 0), (bgr.shape[1], bgr.shape[0]), (0, 0, 255), 10)
+
+        cv2.imshow('Module 4.2 - Highlight Detector', bgr)
+
+        k = cv2.waitKey(30) & 0xff
+        if k == 27 or k == ord('q'):
+            break
+
+        prvs = next_frame
+
+    cap.release()
+    cv2.destroyAllWindows()
+
 
 def process_cut_video(video_path: str, start_time: float, end_time: float, output_path: str = None) -> str:
     video_path = validate_path(video_path)
