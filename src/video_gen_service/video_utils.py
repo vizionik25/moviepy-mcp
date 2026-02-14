@@ -7,19 +7,27 @@ from typing import List, Optional, Tuple, Union
 from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip, concatenate_videoclips, clips_array, ImageClip, vfx, afx
 from PIL import Image, ImageDraw, ImageFont
 
+# Define Safe Directory for storage
+SAFE_DIR = Path(os.environ.get("VIDEO_STORAGE_DIR", os.path.join(os.getcwd(), "storage"))).resolve()
+try:
+    os.makedirs(SAFE_DIR, exist_ok=True)
+except OSError:
+    # Fallback or just continue if we can't create it (might be read-only FS)
+    pass
+
 def validate_path(path_str: str) -> str:
     """
-    Validates that a path is within the allowed directories (CWD or /tmp).
+    Validates that a path is within the allowed directories (SAFE_DIR or /tmp).
     Returns the resolved absolute path string.
     """
     if path_str is None:
         return None
 
     path = Path(path_str).resolve()
-    cwd = Path.cwd().resolve()
     tmp = Path(tempfile.gettempdir()).resolve()
 
-    if not (path.is_relative_to(cwd) or path.is_relative_to(tmp)):
+    # Allow SAFE_DIR and temp dir, disallow arbitrary CWD access
+    if not (path.is_relative_to(SAFE_DIR) or path.is_relative_to(tmp)):
         raise ValueError(f"Access to path {path_str} is forbidden")
 
     return str(path)
