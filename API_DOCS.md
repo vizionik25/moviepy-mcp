@@ -162,6 +162,63 @@ curl -X POST "http://localhost:8000/video/generate" \
 }
 ```
 
+---
+
+### **LLM Chat**
+
+#### Chat Completion
+**Method**: `POST`
+**Path**: `/llm/chat`
+**Description**: Interact with an LLM via LiteLLM. Supports various providers and local models.
+
+**Request Body**:
+```json
+{
+  "messages": [
+    {"role": "user", "content": "How do I resize a video?"}
+  ],
+  "model": "gpt-4o",
+  "api_base": "http://localhost:1234/v1",
+  "temperature": 0.7
+}
+```
+
+---
+
+### **Advanced Editing**
+
+#### Detect Scenes
+**Method**: `POST`
+**Path**: `/video-edits/detect-scenes`
+**Description**: Detects scene changes based on luminosity.
+
+#### Color Effects
+**Method**: `POST`
+**Path**: `/video-edits/color-effect`
+**Description**: Apply 'blackwhite', 'brightness', 'invert', or 'contrast'.
+**Example**: `{"video_path": "in.mp4", "effect_type": "brightness", "factor": 1.5}`
+
+#### Time Effects
+**Method**: `POST`
+**Path**: `/video-edits/time-effect`
+**Description**: Apply 'reverse', 'symmetrize', or 'freeze'.
+**Example**: `{"video_path": "in.mp4", "effect_type": "freeze", "duration": 2.0}`
+
+#### Blink
+**Method**: `POST`
+**Path**: `/video-edits/blink`
+**Description**: Makes the video blink (appear/disappear) with given on/off durations.
+
+#### Painting
+**Method**: `POST`
+**Path**: `/video-edits/painting`
+**Description**: Applies a stylized painting effect.
+
+#### Accel-Decel
+**Method**: `POST`
+**Path**: `/video-edits/accel-decel`
+**Description**: Changes the duration of the clip with acceleration/deceleration.
+
 ## 4. Data Models / Schemas
 
 These are the Pydantic models used for request validation. Optional fields can be omitted.
@@ -230,7 +287,25 @@ interface VolumeRequest extends ClipRequest {
   factor: number;
 }
 
-// ... and so on for all other request types.
+// /video-edits/detect-scenes
+interface DetectScenesRequest {
+  video_path: string;
+  luminosity_threshold?: number;
+}
+
+// /video-edits/accel-decel
+interface AccelDecelRequest extends ClipRequest {
+  new_duration?: number;
+  abscissa_fixed?: number;
+}
+
+// /llm/chat
+interface ChatRequest {
+  messages: { role: string; content: string }[];
+  model?: string;
+  api_base?: string;
+  temperature?: number;
+}
 ```
 
 ## 5. Error Handling

@@ -1,4 +1,4 @@
-# MoviePy MCP Video Generation Service
+# VideoEditor-MCP
 
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -6,7 +6,7 @@ A powerful video generation and editing service powered by FastAPI, MoviePy, and
 
 ## 🎬 Description
 
-This project provides a comprehensive service for programmatically creating and manipulating video and audio content. It exposes a rich set of tools through both a RESTful API (using FastAPI) and a Model-Context-Protocol (MCP) server, making it easy to integrate video editing capabilities into any application or AI agent-based workflow.
+VideoEditor-MCP provides a comprehensive service for programmatically creating and manipulating video and audio content. It exposes a rich set of tools through both a RESTful API (using FastAPI) and a Model-Context-Protocol (MCP) server, making it easy to integrate video editing capabilities into any application or AI agent-based workflow.
 
 Whether you need to generate simple clips, perform complex edits, or composite multiple videos, this service offers a robust and easy-to-use solution.
 
@@ -68,47 +68,36 @@ brew install ffmpeg
 
 ## 🚀 Quick Start
 
-You can run the service as a REST API server or as an MCP server.
+You can run the service as a REST API server, as an MCP server, or launch the frontend.
 
 ### Running the API Server
 
 The API server provides standard HTTP endpoints for all video and audio operations.
 
 ```bash
-uv run uvicorn src.video_gen_service.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn videoEditor_mcp.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The API will be accessible at `http://localhost:8000`. You can explore the interactive API documentation (powered by Swagger UI) at `http://localhost:8000/docs`.
-
-**Example: Generate a video using `curl`**
-```bash
-curl -X POST "http://localhost:8000/video/generate" \
--H "Content-Type: application/json" \
--d '{"text": "Hello, World!", "duration": 5}'
-```
 
 ### Running the MCP Server
 
 The MCP server is designed for interaction with AI agents that can consume and use the provided tools.
 
 ```bash
-uv run python -m src.video_gen_service.mcp_server
+uv run python -m videoEditor_mcp.mcp_server
 ```
 
-The server will start and listen for MCP connections over standard I/O by default.
+### Running the Frontend
 
-**MCP Transport Modes:**
+The project includes a modern Next.js/React frontend that provides a chat interface for interacting with an LLM (via LiteLLM) and using the video editing tools.
 
-You can also run the MCP server in different transport modes using environment variables:
-
-*   **HTTP**:
-    ```bash
-    MCP_TRANSPORT=http PORT=8001 uv run python -m src.video_gen_service.mcp_server
-    ```
-*   **Server-Sent Events (SSE)**:
-    ```bash
-    MCP_TRANSPORT=sse PORT=8001 uv run python -m src.video_gen_service.mcp_server
-    ```
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The frontend will be accessible at `http://localhost:3000`. It allows connecting to local LLMs (like LMStudio) or cloud providers (OpenAI, Gemini, Anthropic, etc.).
 
 ## 🛠️ API Documentation
 
@@ -160,7 +149,7 @@ The MCP server exposes a wide range of tools for agentic workflows. Each tool co
 *   `adjust_volume(video_path: str, factor: float)`
 *   ...and many more!
 
-Refer to `src/video_gen_service/mcp_server.py` for a complete list of available tools and their signatures.
+Refer to `src/videoEditor_mcp/mcp_server.py` for a complete list of available tools and their signatures.
 
 ## 🧪 Development & Testing
 

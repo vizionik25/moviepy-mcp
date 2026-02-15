@@ -1,0 +1,46 @@
+# Use a lightweight Python base image
+FROM python:3.12-slim-bookworm
+
+# Install system dependencies (ffmpeg is required for MoviePy)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency files first for better caching
+COPY pyproject.toml uv.lock ./
+
+# Generate requirements.txt and install dependencies
+# This allows us to cache dependencies separately from the source code
+RUN uv export --no-emit-project --format requirements-txt > requirements.txt && \
+    uv pip install --system -r requirements.txt && \
+    rm requirements.txt
+
+# Copy the rest of the application code and README
+COPY README.md ./
+COPY src/ ./src/
+
+# Install the project itself (without re-installing dependencies)
+RUN uv pip install --system --no-deps .
+
+# Create storage directory for videos
+RUN mkdir -p /app/storage
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV VIDEO_STORAGE_DIR=/app/storage
+ENV PYTHONPATH=/app/src
+
+# Expose the FastAPI port
+EXPOSE 8000
+
+# Command to run the application
+CMD ["uvicorn", "videoEditor_mcp.main:app", "--host", "0.0.0.0", "--port", "8000"]

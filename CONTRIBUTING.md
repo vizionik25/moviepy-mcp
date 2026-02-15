@@ -84,7 +84,7 @@ uv sync --all-extras
 uv run pytest
 
 # 5. Start the development server
-uv run uvicorn src.video_gen_service.main:app --reload
+uv run uvicorn src.videoEditor_mcp.main:app --reload
 ```
 
 ---

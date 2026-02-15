@@ -1,19 +1,32 @@
 services:
-  video-gen-mcp:
-    build: .
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
     ports:
-      - "80:80"
-      - "443:443"
-      # - "8000:8000" # Direct access disabled for production
-    environment:
-      - MCP_TRANSPORT=sse
-      - HOST=0.0.0.0
-      - PORT=8000
-      - DOMAIN_NAME=localhost
+      - "8000:8000"
     volumes:
-      - caddy_data:/data
-      - caddy_config:/config
+      - video_storage:/app/storage
+    environment:
+      - VIDEO_STORAGE_DIR=/app/storage
+      # Add LLM API keys here or in a .env file
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
-  caddy_data:
-  caddy_config:
+  video_storage:

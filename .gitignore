@@ -5,3 +5,24 @@ __pycache__/
 *.mp4
 *.png
 .gemini/
+
+# MoviePy Docs (Reference only)
+moviepy-docs/
+documentation-management.md
+GEMINI.md
+
+# Storage
+storage/
+
+# Environment
+.env
+.python-version
+
+# Node
+node_modules/
+.next/
+dist/
+build/
+
+# Docker logs
+*.log
