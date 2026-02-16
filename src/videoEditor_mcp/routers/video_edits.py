@@ -4,7 +4,7 @@ from ..schemas import (
     CutRequest, ConcatenateRequest, ResizeRequest, SpeedRequest, ColorEffectRequest,
     MirrorRequest, RotateRequest, CropRequest, MarginRequest, FadeRequest, LoopRequest, TimeEffectRequest,
     DetectRequest, AccelDecelRequest, BlinkRequest, GammaCorrectionRequest, PaintingRequest,
-    DetectScenesRequest, ResponseModel
+    KaleidoscopeRequest, PatchyDissolveRequest, ChromaKeyRequest, DetectScenesRequest, ResponseModel
 )
 from ..video_utils import (
     process_cut_video, process_concatenate_videos, process_resize_video,
@@ -12,7 +12,8 @@ from ..video_utils import (
     process_mirror_video, process_rotate_video, process_crop_video,
     process_margin_video, process_fade_video, process_loop_video, process_time_effect_video,
     process_detect_highlights, process_accel_decel_video, process_blink_video,
-    process_gamma_correction_video, process_painting_video, process_detect_scenes
+    process_gamma_correction_video, process_painting_video, process_kaleidoscope_video,
+    process_patchy_dissolve, process_chroma_key, process_detect_scenes
 )
 import os
 import asyncio
@@ -291,6 +292,32 @@ async def time_effect_video(request: TimeEffectRequest):
             request.video_path,
             request.effect_type,
             request.duration,
+            request.output_path
+        )
+        return ResponseModel(status="success", output_path=output_path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/chroma-key", response_model=ResponseModel)
+async def chroma_key_video(request: ChromaKeyRequest):
+    try:
+        output_path = await run_in_threadpool(
+            process_chroma_key,
+            request.video_path,
+            request.background_path,
+            request.color,
+            request.threshold,
+            request.stiffness,
             request.output_path
         )
         return ResponseModel(status="success", output_path=output_path)

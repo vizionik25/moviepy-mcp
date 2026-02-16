@@ -10,10 +10,12 @@ from .video_utils import (
     process_accel_decel_video, process_blink_video, process_gamma_correction_video,
     process_painting_video, process_audio_delay_video, process_audio_normalize_video,
     process_detect_scenes, process_save_frame, process_write_gif,
-    SAFE_DIR
+    process_kaleidoscope_video, process_patchy_dissolve, process_chroma_key, SAFE_DIR
 )
 from typing import List, Optional, Tuple, Union
 import os
+import argparse
+import sys
 
 mcp = FastMCP("Video Editor")
 
@@ -165,5 +167,37 @@ def write_gif(video_path: str, fps: Optional[int] = None, program: str = "imagei
     """Converts a video to a GIF."""
     return process_write_gif(video_path, fps, program, output_path)
 
+@mcp.tool()
+def kaleidoscope_video(video_path: str, output_path: Optional[str] = None) -> str:
+    """Applies a kaleidoscope effect to a video (2x2 mirrored grid)."""
+    return process_kaleidoscope_video(video_path, output_path)
+
+@mcp.tool()
+def patchy_dissolve(video_path1: str, video_path2: str, duration: float = 1.0, output_path: Optional[str] = None) -> str:
+    """Creates a patchy random dissolve transition between two videos."""
+    return process_patchy_dissolve(video_path1, video_path2, duration, output_path)
+
+@mcp.tool()
+def chroma_key(video_path: str, background_path: str, color: Tuple[int, int, int], threshold: float = 0.0, stiffness: float = 1.0, output_path: Optional[str] = None) -> str:
+    """Applies a chroma key effect to a video and replaces the background."""
+    return process_chroma_key(video_path, background_path, color, threshold, stiffness, output_path)
+
+def parse_args(args=None):
+    parser = argparse.ArgumentParser(description="MoviePy MCP Server")
+    parser.add_argument("--transport", choices=["stdio", "sse", "http"], default="http", help="Transport type (default: http)")
+    parser.add_argument("--host", default=os.getenv("HOST", "0.0.0.0"), help=f"Host for HTTP/SSE (default: {os.getenv('HOST', '0.0.0.0')})")
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "8080")), help=f"Port for HTTP/SSE (default: {os.getenv('PORT', '8080')})")
+    return parser.parse_args(args)
+
+def main():
+    args = parse_args()
+    
+    if args.transport == "stdio":
+        mcp.run(transport="stdio")
+    else:
+        # For 'http' and 'sse', use the transport provided (SSE is often the actual transport for HTTP in FastMCP)
+        # If user explicitly asked for 'http', we use 'http' as requested.
+        mcp.run(transport=args.transport, host=args.host, port=args.port)
+
 if __name__ == "__main__":
-    mcp.run()
+    main()

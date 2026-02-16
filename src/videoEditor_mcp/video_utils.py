@@ -2,7 +2,14 @@ import os
 import tempfile
 import uuid
 import cv2
+import numpy as np
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env then .env.local (override=True ensures later loads override earlier ones)
+load_dotenv() # loads .env
+load_dotenv(".env.local", override=True) # loads .env.local if exists
+
 from typing import List, Optional, Tuple, Union
 from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip, concatenate_videoclips, clips_array, ImageClip, vfx, afx
 from moviepy.video.tools.cuts import detect_scenes
@@ -728,4 +735,109 @@ def process_audio_normalize_video(video_path: str, output_path: str = None) -> s
         new_audio = video.audio.with_effects([afx.AudioNormalize()])
         new_clip = video.with_audio(new_audio)
         write_video(new_clip, output_path)
+    return output_path
+
+def process_kaleidoscope_video(video_path: str, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    output_path = validate_path(output_path)
+
+    if not os.path.exists(video_path):
+        raise FileNotFoundError("Video file not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, "kaleidoscope")
+
+    with VideoFileClip(video_path) as video:
+        # Resize to 0.5 to keep final size same as original
+        small_video = video.resized(0.5)
+        # 1. Top-left (original)
+        tl = small_video
+        # 2. Top-right (mirrored X)
+        tr = small_video.with_effects([vfx.MirrorX()])
+        # 3. Bottom-left (mirrored Y)
+        bl = small_video.with_effects([vfx.MirrorY()])
+        # 4. Bottom-right (mirrored X and Y)
+        br = small_video.with_effects([vfx.MirrorX(), vfx.MirrorY()])
+
+        # Combine into a grid
+        final_clip = clips_array([[tl, tr], [bl, br]])
+        write_video(final_clip, output_path)
+    return output_path
+
+def process_patchy_dissolve(video_path1: str, video_path2: str, duration: float = 1.0, output_path: str = None) -> str:
+    video_path1 = validate_path(video_path1)
+    video_path2 = validate_path(video_path2)
+    output_path = validate_path(output_path)
+
+    if not os.path.exists(video_path1) or not os.path.exists(video_path2):
+        raise FileNotFoundError("One or both video files not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path1, "dissolve")
+
+    with VideoFileClip(video_path1) as clip1, VideoFileClip(video_path2) as clip2:
+        # Generate a random noise pattern for the patchy effect
+        # We use a static pattern that we threshold over time
+        w, h = clip2.size
+        # Lower resolution noise for "patchy" look
+        noise_w, noise_h = w // 10, h // 10
+        if noise_w == 0: noise_w = 1
+        if noise_h == 0: noise_h = 1
+        
+        noise_pattern = np.random.rand(noise_h, noise_w)
+        # Upscale to full size
+        noise_pattern = cv2.resize(noise_pattern, (w, h), interpolation=cv2.INTER_NEAREST)
+
+        def make_mask_frame(t):
+            # t goes from 0 to duration
+            # threshold goes from 0 to 1
+            threshold = t / duration
+            mask_frame = (noise_pattern < threshold).astype(float)
+            # return as RGB (3 channels) for MoviePy mask
+            return np.stack([mask_frame] * 3, axis=-1)
+
+        mask = VideoClip(make_mask_frame, is_mask=True, duration=duration)
+        
+        # clip2 starts playing before clip1 ends
+        # overlap is 'duration'
+        start_time_clip2 = max(0, clip1.duration - duration)
+        
+        clip2_transition = clip2.with_start(start_time_clip2).with_section_cut_out(duration, clip2.duration).with_mask(mask)
+        # We need the rest of clip2 after the transition
+        clip2_rest = clip2.with_start(start_time_clip2 + duration).subclipped(duration)
+        
+        final_clip = CompositeVideoClip([
+            clip1,
+            clip2_transition,
+            clip2_rest
+        ])
+        
+        write_video(final_clip, output_path)
+    return output_path
+
+def process_chroma_key(video_path: str, background_path: str, color: tuple[int, int, int], threshold: float = 0, stiffness: float = 1, output_path: str = None) -> str:
+    video_path = validate_path(video_path)
+    background_path = validate_path(background_path)
+    output_path = validate_path(output_path)
+
+    if not os.path.exists(video_path) or not os.path.exists(background_path):
+        raise FileNotFoundError("One or both video files not found")
+
+    if output_path is None:
+        output_path = get_unique_output_path(video_path, "chroma")
+
+    with VideoFileClip(video_path) as video, VideoFileClip(background_path) as bg:
+        # Create mask for the keyed color
+        # MaskColor returns a clip with the mask applied
+        keyed_video = video.with_effects([vfx.MaskColor(color=color, threshold=threshold, stiffness=stiffness)])
+        
+        # Ensure background matches video size
+        bg_resized = bg.resized(video.size)
+        # Background should last as long as the video
+        bg_resized = bg_resized.with_duration(video.duration)
+        
+        # Overlay keyed video on background
+        final_clip = CompositeVideoClip([bg_resized, keyed_video])
+        
+        write_video(final_clip, output_path)
     return output_path

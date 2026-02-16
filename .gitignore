@@ -16,6 +16,7 @@ storage/
 
 # Environment
 .env
+.env.local
 .python-version
 
 # Node

@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -16,6 +16,14 @@ COPY . .
 # We use NEXT_PUBLIC_API_URL during build for client-side environment variables
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# LLM Config (can also be provided at runtime for server-side)
+ARG LLM_API_KEY
+ARG LLM_API_BASE
+ARG LLM_MODEL
+ENV LLM_API_KEY=$LLM_API_KEY
+ENV LLM_API_BASE=$LLM_API_BASE
+ENV LLM_MODEL=$LLM_MODEL
 
 RUN npm run build
 

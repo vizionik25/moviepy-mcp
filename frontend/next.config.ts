@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: '/sse',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:8000'}/sse`,
+      },
+      {
+        source: '/messages',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:8000'}/messages`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

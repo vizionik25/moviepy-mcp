@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     libsm6 \
     libxext6 \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    fonts-dejavu-core \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,7 +22,6 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Generate requirements.txt and install dependencies
-# This allows us to cache dependencies separately from the source code
 RUN uv export --no-emit-project --format requirements-txt > requirements.txt && \
     uv pip install --system -r requirements.txt && \
     rm requirements.txt
@@ -38,9 +40,10 @@ RUN mkdir -p /app/storage
 ENV PYTHONUNBUFFERED=1
 ENV VIDEO_STORAGE_DIR=/app/storage
 ENV PYTHONPATH=/app/src
+ENV MCP_TRANSPORT=http
 
-# Expose the FastAPI port
+# Expose the FastAPI port (Internal use only)
 EXPOSE 8000
 
-# Command to run the application
+# Command to run the application (FastAPI + MCP Server)
 CMD ["uvicorn", "videoEditor_mcp.main:app", "--host", "0.0.0.0", "--port", "8000"]

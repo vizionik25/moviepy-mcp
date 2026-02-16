@@ -34,7 +34,7 @@ export default function Chat() {
       const savedSettings = localStorage.getItem('moviepy-mcp-settings');
       let config = {
         model: 'gpt-4o',
-        apiBase: 'http://localhost:1234/v1',
+        apiBase: 'https://api.openai.com/v1',
         apiKey: ''
       };
 
@@ -42,7 +42,7 @@ export default function Chat() {
         const settings = JSON.parse(savedSettings);
         config = {
           model: settings.modelName || 'gpt-4o',
-          apiBase: settings.apiBaseUrl || 'http://localhost:1234/v1',
+          apiBase: settings.apiBaseUrl || 'https://api.openai.com/v1',
           apiKey: settings.apiKey || ''
         };
       }

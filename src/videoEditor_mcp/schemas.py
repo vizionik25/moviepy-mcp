@@ -123,6 +123,23 @@ class PaintingRequest(ClipRequest):
     saturation: float = Field(1.4, description="Saturation factor")
     black: float = Field(0.006, description="Black level")
 
+class KaleidoscopeRequest(ClipRequest):
+    pass
+
+class PatchyDissolveRequest(BaseModel):
+    video_path1: str = Field(..., description="Path to the first video")
+    video_path2: str = Field(..., description="Path to the second video")
+    duration: float = Field(1.0, description="Duration of the transition in seconds")
+    output_path: Optional[str] = Field(None, description="Path to save the output video")
+
+class ChromaKeyRequest(BaseModel):
+    video_path: str = Field(..., description="Path to the foreground video")
+    background_path: str = Field(..., description="Path to the background video")
+    color: Tuple[int, int, int] = Field(..., description="Color to key out (R, G, B)")
+    threshold: float = Field(0.0, description="Similarity threshold")
+    stiffness: float = Field(1.0, description="Stiffness of the mask edge")
+    output_path: Optional[str] = Field(None, description="Path to save the output video")
+
 class DetectScenesRequest(BaseModel):
     video_path: str = Field(..., description="Path to the input video file")
     luminosity_threshold: float = Field(10.0, description="Luminosity change threshold")
