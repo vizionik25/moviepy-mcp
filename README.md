@@ -45,8 +45,8 @@ Whether you need to generate simple clips, perform complex edits, or composite m
 
 *   [Installation](#-installation)
 *   [🚀 Quick Start](#-quick-start)
-    *   [Running the API Server](#running-the-api-server)
-    *   [Running the MCP Server](#running-the-mcp-server)
+    *   [Environment Setup](#environment-setup)
+    *   [Running the Application](#running-the-application)
 *   [🛠️ API Documentation](#️-api-documentation)
     *   [Video Generation](#video-generation)
     *   [Video Editing](#video-editing)
@@ -91,36 +91,42 @@ brew install ffmpeg
 
 ## 🚀 Quick Start
 
-You can run the service as a REST API server, as an MCP server, or launch the frontend.
+### Environment Setup
 
-### Running the API Server
+Before running the application, you need to set up the environment variables.
 
-The API server provides standard HTTP endpoints for all video and audio operations.
+1.  **Backend Environment:**
+    Create a `.env` file in the root of the project and add any necessary environment variables for the FastAPI server.
 
-```bash
-uv run uvicorn videoEditor_mcp.main:app --reload --host 0.0.0.0 --port 8000
-```
+    ```bash
+    # .env
+    EXAMPLE_VARIABLE=example_value
+    ```
 
-The API will be accessible at `http://localhost:8000`. You can explore the interactive API documentation (powered by Swagger UI) at `http://localhost:8000/docs`.
+2.  **Frontend Environment:**
+    Create a `.env.local` file in the `frontend` directory and add your client-side environment variables.
 
-### Running the MCP Server
+    ```bash
+    # frontend/.env.local
+    NEXT_PUBLIC_EXAMPLE_VARIABLE=example_value
+    ```
 
-The MCP server is designed for interaction with AI agents that can consume and use the provided tools.
+### Running the Application
 
-```bash
-uv run python -m videoEditor_mcp.mcp_server
-```
+This project now includes a `start.sh` script to streamline the development setup. This script handles installing dependencies for both the backend and frontend, and starts both services.
 
-### Running the Frontend
+1.  **Install dependencies and start the development servers:**
+    The following command will:
+    - Install Python dependencies with `uv`.
+    - Install Node.js dependencies with `npm`.
+    - Start the FastAPI backend server.
+    - Start the Next.js frontend development server.
 
-The project includes a modern Next.js/React frontend that provides a chat interface for interacting with an LLM (via LiteLLM) and using the video editing tools.
+    ```bash
+    uv sync && cd frontend && npm i && cd ../ && ./start.sh --dev
+    ```
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The frontend will be accessible at `http://localhost:3000`. It allows connecting to local LLMs (like LMStudio) or cloud providers (OpenAI, Gemini, Anthropic, etc.).
+The FastAPI server will be available at `http://localhost:8000` and the frontend at `http://localhost:3000`.
 
 ## 🛠️ API Documentation
 
