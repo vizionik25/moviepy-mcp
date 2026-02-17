@@ -3,7 +3,6 @@ __pycache__/
 .venv/
 .pytest_cache/
 *.mp4
-*.png
 .gemini/
 
 # MoviePy Docs (Reference only)

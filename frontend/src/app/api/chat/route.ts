@@ -41,6 +41,12 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('API Route Error:', error.response?.data || error.message);
+    if (error.response?.status === 404 && error.response?.data?.detail === 'Not Found') {
+      return NextResponse.json(
+        { error: 'The configured API Base URL returned a "Not Found" error. Please ensure it is pointing to a valid LLM provider endpoint (e.g., https://api.openai.com/v1) and not the application backend.' },
+        { status: 404 }
+      );
+    }
     return NextResponse.json(
       { error: error.response?.data?.error?.message || error.message },
       { status: error.response?.status || 500 }
