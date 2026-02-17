@@ -18,6 +18,29 @@ Whether you need to generate simple clips, perform complex edits, or composite m
 *   **Containerized**: Comes with Docker support for easy deployment and scaling.
 *   **Modern Tooling**: Uses `uv` for fast dependency management and `pytest` for robust testing.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="screenshots/main-ss.png" alt="Main Interface" width="80%">
+  <br>
+  <em>The main chat interface for interacting with the video editing agent.</em>
+</p>
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="screenshots/settings-ss1.png" alt="Expanded Settings" width="400">
+      <br>
+      <em>Expanded settings panel for configuring the LLM provider and model.</em>
+    </td>
+    <td align="center">
+      <img src="screenshots/settings-ss2.png" alt="Collapsed Settings" width="400">
+      <br>
+      <em>Collapsed settings panel.</em>
+    </td>
+  </tr>
+</table>
+
 ## 📖 Table of Contents
 
 *   [Installation](#-installation)

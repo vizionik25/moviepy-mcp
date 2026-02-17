@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: '/mcp',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:8080'}/mcp`,
+      },
+      {
         source: '/sse',
         destination: `${process.env.BACKEND_URL || 'http://localhost:8000'}/sse`,
       },

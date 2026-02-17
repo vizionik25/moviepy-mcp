@@ -1,12 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import video, video_edits, audio, compositing
-from .mcp_server import mcp
-from fastmcp.server.http import create_streamable_http_app
 
-mcp_app = create_streamable_http_app(server=mcp, streamable_http_path="/mcp")
-
-app = FastAPI(title="Video Generation Service", lifespan=mcp_app.lifespan)
+app = FastAPI(title="Video Edit Service")
 
 # Add CORS middleware
 app.add_middleware(
@@ -16,9 +12,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Mount MCP server
-app.mount("/mcp", mcp_app)
 
 app.include_router(video.router)
 app.include_router(video_edits.router)

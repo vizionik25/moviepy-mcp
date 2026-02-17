@@ -19,6 +19,7 @@ import sys
 
 mcp = FastMCP("Video Editor")
 
+
 @mcp.tool()
 def generate_video(text: str, duration: float = 3.0) -> str:
     """Generates a simple video with text on a background."""
@@ -191,13 +192,10 @@ def parse_args(args=None):
 
 def main():
     args = parse_args()
-    
     if args.transport == "stdio":
         mcp.run(transport="stdio")
     else:
-        # For 'http' and 'sse', use the transport provided (SSE is often the actual transport for HTTP in FastMCP)
-        # If user explicitly asked for 'http', we use 'http' as requested.
-        mcp.run(transport=args.transport, host=args.host, port=args.port)
+        mcp.run(transport=args.transport, host=args.host, port=args.port, path="/mcp")
 
 if __name__ == "__main__":
     main()
